@@ -1,4 +1,12 @@
-(function(window) {
+(function(root, factory) {
+    if (typeof module === 'object' && module.exports) {
+        module.exports = factory(require('lodash'));
+    } else {
+        root.update = factory(root._);
+    }
+}(typeof self !== 'undefined' ? self : this, function(_) {
+    'use strict';
+
     var slice = Array.prototype.slice;
     var splice = Array.prototype.splice;
 
@@ -197,6 +205,8 @@
         }
     }
 
-    window.update = context();
-    window.update.context = context;
-}(window));
+    var module = context();
+    module.default = module;
+    module.context = context;
+    return module;
+}));
