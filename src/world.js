@@ -1,4 +1,10 @@
-(function(window) {
+(function(root, factory) {
+    if (typeof module === 'object' && module.exports) {
+        module.exports = factory(require('../js/lib/immutable-update'), require('lodash'));
+    } else {
+        root.create_world = factory(root.update, root._);
+    }
+}(typeof self !== 'undefined' ? self : this, function(update, _) {
     'use strict';
 
     const dungeon_region = {
@@ -1329,7 +1335,7 @@
         }
     };
 
-    window.create_world = ({ standard, keysanity }) => ({
+    var create_world = ({ standard, keysanity }) => ({
         world: {
             ..._.mapValues(_.pickBy({
                 eastern: keysanity ? eastern_keysanity : eastern,
@@ -1360,4 +1366,6 @@
             agahnim() { return this.castle_tower.completed; }
         }
     });
-}(window));
+
+    return create_world;
+}));
