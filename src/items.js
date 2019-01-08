@@ -1,4 +1,10 @@
-(function(window) {
+(function(root, factory) {
+    if (typeof module === 'object' && module.exports) {
+        module.exports = factory(require('lodash'));
+    } else {
+        root.create_items = factory(root._);
+    }
+}(typeof self !== 'undefined' ? self : this, function(_) {
     'use strict';
 
     const items_base = {
@@ -69,5 +75,7 @@
         flute: false
     };
 
-    window.create_items = () => ({ items: _.create(items_base, items) });
-}(window));
+    var create_items = () => ({ items: _.create(items_base, items) });
+
+    return create_items;
+}));
