@@ -16,3 +16,21 @@ exports.with_cases = (...cases) => {
         params => func(..._.castArray(params))
     );
 };
+
+exports.helpers = (chai, utils) => {
+    utils.addProperty(chai.Assertion.prototype, 'truthy', function() {
+        this.assert(
+            !!this._obj,
+            'expected #{this} to be truthy',
+            'expected #{this} to not be truthy'
+        );
+    });
+
+    utils.addProperty(chai.Assertion.prototype, 'falsy', function() {
+        this.assert(
+            !this._obj,
+            'expected #{this} to be falsy',
+            'expected #{this} to not be falsy'
+        );
+    });
+};
