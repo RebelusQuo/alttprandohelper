@@ -32,6 +32,7 @@ const update = (tokens, items, world, region) =>
         else {
             const change = (token, value) => items[token] = value;
             const values = {
+                sword: ['sword', 1],
                 mastersword: ['sword', 2],
                 bow: ['bow', 2],
                 bottle: ['bottle', 1],
@@ -65,6 +66,10 @@ describe('World', () => {
 
         with_cases(
         ['eastern', null, 'always'],
+
+        ['desert', null, false],
+        ['desert', 'book', true],
+        ['desert', 'flute mitt mirror', true],
 
         ['lightworld_deathmountain_west', null, false],
         ['lightworld_deathmountain_west', 'flute', true],
@@ -162,6 +167,41 @@ describe('World', () => {
         ['eastern', 'chests=1', 'possible'],
         ['eastern', 'chests=2 lamp', true],
         ['eastern', 'chests=1 lamp bow', true],
+        (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world, region);
+            world[region].can_progress({ items, region: world[region] }).should.equal(state);
+        }));
+
+    });
+
+    context('desert palace', () => {
+
+        with_cases(
+        ['desert', null, false],
+        ['desert', 'glove lamp sword', 'possible'],
+        ['desert', 'glove lamp hammer', 'possible'],
+        ['desert', 'glove lamp bow', 'possible'],
+        ['desert', 'glove lamp icerod', 'possible'],
+        ['desert', 'glove lamp somaria', 'possible'],
+        ['desert', 'glove lamp byrna', 'possible'],
+        ['desert', 'glove firerod', 'possible'],
+        ['desert', 'glove lamp sword boots', true],
+        ['desert', 'glove lamp hammer boots', true],
+        ['desert', 'glove lamp bow boots', true],
+        ['desert', 'glove lamp icerod boots', true],
+        ['desert', 'glove lamp somaria boots', true],
+        ['desert', 'glove lamp byrna boots', true],
+        ['desert', 'glove firerod boots', true],
+        (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items);
+            world[region].can_complete({ items }).should.equal(state);
+        }));
+
+        with_cases(
+        ['desert', null, 'possible'],
+        ['desert', 'boots', true],
+        ['desert', 'chests=1 boots glove lamp', true],
+        ['desert', 'chests=1 boots glove firerod', true],
         (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
             update(progress, items, world, region);
             world[region].can_progress({ items, region: world[region] }).should.equal(state);
