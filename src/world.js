@@ -1087,7 +1087,7 @@
                 can_access({ items, world }) {
                     return items.flippers && items.moonpearl && items.mirror && (
                         world.darkworld_south.can_enter(...arguments) ||
-                        world.darkworld_northwest.can_enter(...arguments)
+                        world.darkworld_northeast.can_enter(...arguments)
                     ) || 'viewable';
                 }
             },
