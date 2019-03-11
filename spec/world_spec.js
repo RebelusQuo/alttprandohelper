@@ -82,6 +82,12 @@ describe('World', () => {
         ['darkness', 'moonpearl glove hammer', true],
         ['darkness', 'moonpearl mitt flippers', true],
 
+        ['swamp', null, false],
+        ['swamp', 'moonpearl mirror flippers agahnim hammer', true],
+        ['swamp', 'moonpearl mirror flippers agahnim hookshot', true],
+        ['swamp', 'moonpearl mirror flippers glove hammer', true],
+        ['swamp', 'moonpearl mirror flippers mitt', true],
+
         ['lightworld_deathmountain_west', null, false],
         ['lightworld_deathmountain_west', 'flute', true],
         ['lightworld_deathmountain_west', 'glove lamp', true],
@@ -265,6 +271,32 @@ describe('World', () => {
         ['darkness', null, 'possible'],
         ['darkness', 'bow lamp', true],
         ['darkness', 'chests=1 bow lamp hammer', true],
+        (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world, region);
+            world[region].can_progress({ items, region: world[region] }).should.equal(state);
+        }));
+
+    });
+
+    context('swamp palace', () => {
+
+        with_cases(
+        ['swamp', null, false],
+        ['swamp', 'hammer hookshot', true],
+        (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items);
+            world[region].can_complete({ items }).should.equal(state);
+        }));
+
+        with_cases(
+        ['swamp', null, 'possible'],
+        ['swamp', 'hammer', true],
+        ['swamp', 'chests=5', false],
+        ['swamp', 'chests=5 hammer', true],
+        ['swamp', 'chests=4 hammer', 'possible'],
+        ['swamp', 'chests=4 hammer hookshot', true],
+        ['swamp', 'chests=2 hammer', false],
+        ['swamp', 'chests=2 hammer hookshot', true],
         (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
             update(progress, items, world, region);
             world[region].can_progress({ items, region: world[region] }).should.equal(state);
