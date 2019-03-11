@@ -33,11 +33,13 @@ const update = (tokens, items) =>
 
 describe('World', () => {
 
+    let mode;
     let world;
     let items;
 
     beforeEach(() => {
-        world = create_world({ open: true }).world;
+        mode = { open: true };
+        world = create_world(mode).world;
         items = create_items().items;
     });
 
@@ -146,6 +148,11 @@ describe('World', () => {
         ['lightworld_south', 'ice_cave', null, 'always'],
 
         ['castle_escape', 'sanctuary', null, 'always'],
+        ['castle_escape', 'escape_side', null, 'dark'],
+        ['castle_escape', 'escape_side', 'lamp', 'possible'],
+        ['castle_escape', 'escape_side', 'glove', true],
+        ['castle_escape', 'escape_dark', null, 'dark'],
+        ['castle_escape', 'escape_dark', 'lamp', true],
         ['castle_escape', 'castle', null, 'always'],
         ['castle_escape', 'secret', null, 'always'],
 
@@ -153,7 +160,7 @@ describe('World', () => {
             update(progress, items);
             state === 'always' ?
                 expect(world[region].locations[name].can_access).to.be.falsy :
-                world[region].locations[name].can_access({ items, world }).should.equal(state);
+                world[region].locations[name].can_access({ items, world, mode }).should.equal(state);
         }));
 
     });
