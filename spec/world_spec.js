@@ -55,8 +55,11 @@ describe('World', () => {
     context('overworld locations', () => {
 
         with_cases(
+        ['lightworld_northwest', 'altar', null, false],
+        ['lightworld_northwest', 'altar', 'book', 'viewable'],
         ['lightworld_northwest', 'mushroom', null, 'always'],
         ['lightworld_northwest', 'hideout', null, 'always'],
+        ['lightworld_northwest', 'tree', null, 'viewable'],
         ['lightworld_northwest', 'graveyard_w', null, false],
         ['lightworld_northwest', 'graveyard_w', 'boots', true],
         ['lightworld_northwest', 'kid', null, false],
@@ -71,6 +74,7 @@ describe('World', () => {
         ['lightworld_northeast', 'zora', 'flippers', true],
         ['lightworld_northeast', 'zora', 'glove', true],
         ['lightworld_northeast', 'river', null, false],
+        ['lightworld_northeast', 'river', 'glove', 'viewable'],
         ['lightworld_northeast', 'river', 'flippers', true],
         ['lightworld_northeast', 'fairy_lw', null, false],
         ['lightworld_northeast', 'fairy_lw', 'flippers', true],
@@ -79,13 +83,16 @@ describe('World', () => {
         ['lightworld_northeast', 'sahasrahla_hut', null, 'always'],
 
         ['lightworld_south', 'maze', null, 'always'],
+        ['lightworld_south', 'library', null, 'viewable'],
         ['lightworld_south', 'library', 'boots', true],
         ['lightworld_south', 'grove_n', null, false],
         ['lightworld_south', 'grove_n', 'shovel', true],
         ['lightworld_south', 'link_house', null, 'always'],
+        ['lightworld_south', 'desert_w', null, 'viewable'],
         ['lightworld_south', 'aginah', null, 'always'],
         ['lightworld_south', 'dam', null, 'always'],
         ['lightworld_south', 'lake_sw', null, 'always'],
+        ['lightworld_south', 'island_lake', null, 'viewable'],
         ['lightworld_south', 'hobo', null, false],
         ['lightworld_south', 'hobo', 'flippers', true],
         ['lightworld_south', 'ice_cave', null, 'always'],
@@ -98,7 +105,7 @@ describe('World', () => {
             update(progress, items);
             state === 'always' ?
                 expect(world[region].locations[name].can_access).to.be.falsy :
-                world[region].locations[name].can_access({ items }).should.equal(state);
+                world[region].locations[name].can_access({ items, world }).should.equal(state);
         }));
 
     });
