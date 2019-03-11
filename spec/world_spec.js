@@ -22,14 +22,18 @@ const _with = progress =>
         progress.replace(/ /g, ', ') :
         'nothing'}`;
 
-const update = (tokens, items, world) =>
+const update = (tokens, items, world, region) =>
     tokens && tokens.split(' ').forEach(token => {
+        let match;
         if (token === 'agahnim')
             world.castle_tower.completed = true;
+        else if (match = token.match(/chests=(\d+)/))
+            world[region].chests = +match[1];
         else {
             const change = (token, value) => items[token] = value;
             const values = {
                 mastersword: ['sword', 2],
+                bow: ['bow', 2],
                 bottle: ['bottle', 1],
                 glove: ['glove', 1],
                 mitt: ['glove', 2]
@@ -60,6 +64,8 @@ describe('World', () => {
     context('regions', () => {
 
         with_cases(
+        ['eastern', null, 'always'],
+
         ['lightworld_deathmountain_west', null, false],
         ['lightworld_deathmountain_west', 'flute', true],
         ['lightworld_deathmountain_west', 'glove lamp', true],
@@ -135,6 +141,30 @@ describe('World', () => {
         (region, progress, state) => it(`can enter dark ${region} ${is(state)} ${_with(progress)}`, () => {
             update(progress, items);
             world[region].can_enter_dark({ items, world }).should.equal(state);
+        }));
+
+    });
+
+    context('eastern palace', () => {
+
+        with_cases(
+        ['eastern', null, false],
+        ['eastern', 'bow', 'dark'],
+        ['eastern', 'lamp bow', true],
+        (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items);
+            world[region].can_complete({ items }).should.equal(state);
+        }));
+
+        with_cases(
+        ['eastern', null, true],
+        ['eastern', 'chests=2', 'possible'],
+        ['eastern', 'chests=1', 'possible'],
+        ['eastern', 'chests=2 lamp', true],
+        ['eastern', 'chests=1 lamp bow', true],
+        (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world, region);
+            world[region].can_progress({ items, region: world[region] }).should.equal(state);
         }));
 
     });
