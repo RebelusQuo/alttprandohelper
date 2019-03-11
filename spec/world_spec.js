@@ -71,6 +71,12 @@ describe('World', () => {
         ['desert', 'book', true],
         ['desert', 'flute mitt mirror', true],
 
+        ['hera', null, false],
+        ['hera', 'mirror flute', true],
+        ['hera', 'mirror glove lamp', true],
+        ['hera', 'hookshot hammer flute', true],
+        ['hera', 'hookshot hammer glove lamp', true],
+
         ['lightworld_deathmountain_west', null, false],
         ['lightworld_deathmountain_west', 'flute', true],
         ['lightworld_deathmountain_west', 'glove lamp', true],
@@ -129,6 +135,10 @@ describe('World', () => {
         }));
 
         with_cases(
+        ['hera', null, false],
+        ['hera', 'mirror glove', true],
+        ['hera', 'hookshot hammer glove', true],
+
         ['lightworld_deathmountain_west', null, false],
         ['lightworld_deathmountain_west', 'glove', true],
 
@@ -202,6 +212,32 @@ describe('World', () => {
         ['desert', 'boots', true],
         ['desert', 'chests=1 boots glove lamp', true],
         ['desert', 'chests=1 boots glove firerod', true],
+        (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world, region);
+            world[region].can_progress({ items, region: world[region] }).should.equal(state);
+        }));
+
+    });
+
+    context('tower of hera', () => {
+
+        with_cases(
+        ['hera', null, false],
+        ['hera', 'sword', 'possible'],
+        ['hera', 'hammer', 'possible'],
+        ['hera', 'sword lamp', true],
+        ['hera', 'sword firerod', true],
+        ['hera', 'hammer lamp', true],
+        ['hera', 'hammer firerod', true],
+        (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items);
+            world[region].can_complete({ items }).should.equal(state);
+        }));
+
+        with_cases(
+        ['hera', null, 'possible'],
+        ['hera', 'lamp', true],
+        ['hera', 'firerod', true],
         (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
             update(progress, items, world, region);
             world[region].can_progress({ items, region: world[region] }).should.equal(state);
