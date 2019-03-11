@@ -23,8 +23,10 @@ const update = (tokens, items) =>
     tokens && tokens.split(' ').forEach(token => {
         const change = (token, value) => items[token] = value;
         const values = {
+            mastersword: ['sword', 2],
             bottle: ['bottle', 1],
-            glove: ['glove', 1]
+            glove: ['glove', 1],
+            mitt: ['glove', 2]
         };
         change(...(values[token] || [token, true]));
     });
@@ -42,12 +44,42 @@ describe('World', () => {
     context('regions', () => {
 
         with_cases(
-        'lightworld_northwest',
-        'lightworld_northeast',
-        'lightworld_south',
-        'castle_escape',
-        (region) => it(`can enter ${region} "always"`, () => {
-            expect(world[region].can_enter).to.be.falsy;
+        ['lightworld_deathmountain_west', null, false],
+        ['lightworld_deathmountain_west', 'flute', true],
+        ['lightworld_deathmountain_west', 'glove lamp', true],
+
+        ['lightworld_deathmountain_east', null, false],
+        ['lightworld_deathmountain_east', 'hammer mirror flute', true],
+        ['lightworld_deathmountain_east', 'hammer mirror glove lamp', true],
+        ['lightworld_deathmountain_east', 'hookshot flute', true],
+        ['lightworld_deathmountain_east', 'hookshot glove lamp', true],
+
+        ['lightworld_northwest', null, 'always'],
+
+        ['lightworld_northeast', null, 'always'],
+
+        ['lightworld_south', null, 'always'],
+
+        ['castle_escape', null, 'always'],
+
+        (region, progress, state) => it(`can enter ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items);
+            state === 'always' ?
+                expect(world[region].can_enter).to.be.falsy :
+                world[region].can_enter({ items, world }).should.equal(state);
+        }));
+
+        with_cases(
+        ['lightworld_deathmountain_west', null, false],
+        ['lightworld_deathmountain_west', 'glove', true],
+
+        ['lightworld_deathmountain_east', null, false],
+        ['lightworld_deathmountain_east', 'hammer mirror glove', true],
+        ['lightworld_deathmountain_east', 'hookshot glove', true],
+
+        (region, progress, state) => it(`can enter dark ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items);
+            world[region].can_enter_dark({ items, world }).should.equal(state);
         }));
 
     });
@@ -55,6 +87,22 @@ describe('World', () => {
     context('overworld locations', () => {
 
         with_cases(
+        ['lightworld_deathmountain_west', 'ether', null, false],
+        ['lightworld_deathmountain_west', 'ether', 'book mirror', 'viewable'],
+        ['lightworld_deathmountain_west', 'ether', 'book hammer hookshot', 'viewable'],
+        ['lightworld_deathmountain_west', 'ether', 'book mirror mastersword', true],
+        ['lightworld_deathmountain_west', 'ether', 'book hammer hookshot mastersword', true],
+        ['lightworld_deathmountain_west', 'spectacle_rock', null, 'viewable'],
+        ['lightworld_deathmountain_west', 'spectacle_rock', 'mirror', true],
+        ['lightworld_deathmountain_west', 'spectacle_cave', null, 'always'],
+        ['lightworld_deathmountain_west', 'old_man', null, 'dark'],
+        ['lightworld_deathmountain_west', 'old_man', 'lamp', true],
+
+        ['lightworld_deathmountain_east', 'island_dm', null, 'viewable'],
+        ['lightworld_deathmountain_east', 'island_dm', 'mitt moonpearl mirror', true],
+        ['lightworld_deathmountain_east', 'spiral', null, 'always'],
+        ['lightworld_deathmountain_east', 'paradox', null, 'always'],
+
         ['lightworld_northwest', 'altar', null, false],
         ['lightworld_northwest', 'altar', 'book', 'viewable'],
         ['lightworld_northwest', 'mushroom', null, 'always'],
