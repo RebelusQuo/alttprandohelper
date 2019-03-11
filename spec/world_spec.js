@@ -77,6 +77,11 @@ describe('World', () => {
         ['hera', 'hookshot hammer flute', true],
         ['hera', 'hookshot hammer glove lamp', true],
 
+        ['darkness', null, false],
+        ['darkness', 'moonpearl agahnim', true],
+        ['darkness', 'moonpearl glove hammer', true],
+        ['darkness', 'moonpearl mitt flippers', true],
+
         ['lightworld_deathmountain_west', null, false],
         ['lightworld_deathmountain_west', 'flute', true],
         ['lightworld_deathmountain_west', 'glove lamp', true],
@@ -238,6 +243,28 @@ describe('World', () => {
         ['hera', null, 'possible'],
         ['hera', 'lamp', true],
         ['hera', 'firerod', true],
+        (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world, region);
+            world[region].can_progress({ items, region: world[region] }).should.equal(state);
+        }));
+
+    });
+
+    context('palace of darkness', () => {
+
+        with_cases(
+        ['darkness', null, false],
+        ['darkness', 'bow hammer', 'dark'],
+        ['darkness', 'bow hammer lamp', true],
+        (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items);
+            world[region].can_complete({ items }).should.equal(state);
+        }));
+
+        with_cases(
+        ['darkness', null, 'possible'],
+        ['darkness', 'bow lamp', true],
+        ['darkness', 'chests=1 bow lamp hammer', true],
         (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
             update(progress, items, world, region);
             world[region].can_progress({ items, region: world[region] }).should.equal(state);
