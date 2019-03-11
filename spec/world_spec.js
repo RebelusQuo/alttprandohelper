@@ -20,7 +20,14 @@ const _with = progress =>
         'nothing'}`;
 
 const update = (tokens, items) =>
-    tokens && tokens.split(' ').forEach(token => items[token] = true);
+    tokens && tokens.split(' ').forEach(token => {
+        const change = (token, value) => items[token] = value;
+        const values = {
+            bottle: ['bottle', 1],
+            glove: ['glove', 1]
+        };
+        change(...(values[token] || [token, true]));
+    });
 
 describe('World', () => {
 
@@ -52,6 +59,8 @@ describe('World', () => {
         ['lightworld_northwest', 'hideout', null, 'always'],
         ['lightworld_northwest', 'graveyard_w', null, false],
         ['lightworld_northwest', 'graveyard_w', 'boots', true],
+        ['lightworld_northwest', 'kid', null, false],
+        ['lightworld_northwest', 'kid', 'bottle', true],
         ['lightworld_northwest', 'well', null, 'always'],
         ['lightworld_northwest', 'thief_hut', null, 'always'],
         ['lightworld_northwest', 'bottle', null, 'always'],
@@ -60,6 +69,7 @@ describe('World', () => {
 
         ['lightworld_northeast', 'zora', null, false],
         ['lightworld_northeast', 'zora', 'flippers', true],
+        ['lightworld_northeast', 'zora', 'glove', true],
         ['lightworld_northeast', 'river', null, false],
         ['lightworld_northeast', 'river', 'flippers', true],
         ['lightworld_northeast', 'fairy_lw', null, false],
