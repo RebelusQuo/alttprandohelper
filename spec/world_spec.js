@@ -95,6 +95,13 @@ describe('World', () => {
         ['skull', 'moonpearl glove hammer', true],
         ['skull', 'moonpearl mitt', true],
 
+        ['thieves', null, false],
+        ['thieves', 'moonpearl agahnim hookshot flippers', true],
+        ['thieves', 'moonpearl agahnim hookshot glove', true],
+        ['thieves', 'moonpearl agahnim hookshot hammer', true],
+        ['thieves', 'moonpearl glove hammer', true],
+        ['thieves', 'moonpearl mitt', true],
+
         ['lightworld_deathmountain_west', null, false],
         ['lightworld_deathmountain_west', 'flute', true],
         ['lightworld_deathmountain_west', 'glove lamp', true],
@@ -325,6 +332,30 @@ describe('World', () => {
         ['skull', null, 'possible'],
         ['skull', 'firerod', true],
         ['skull', 'chests=1 firerod sword', true],
+        (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world, region);
+            world[region].can_progress({ items, region: world[region] }).should.equal(state);
+        }));
+
+    });
+
+    context("thieves' town", () => {
+
+        with_cases(
+        ['thieves', null, false],
+        ['thieves', 'sword', true],
+        ['thieves', 'hammer', true],
+        ['thieves', 'somaria', true],
+        ['thieves', 'byrna', true],
+        (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items);
+            world[region].can_complete({ items }).should.equal(state);
+        }));
+
+        with_cases(
+        ['thieves', null, true],
+        ['thieves', 'chests=1', 'possible'],
+        ['thieves', 'chests=1 hammer', true],
         (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
             update(progress, items, world, region);
             world[region].can_progress({ items, region: world[region] }).should.equal(state);
