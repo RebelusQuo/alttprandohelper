@@ -24,14 +24,14 @@ const _with = progress =>
 
 const update = (tokens, items, world, region) =>
     tokens && tokens.split(' ').forEach(token => {
-        let match;
+        let m, v;
         if (token === 'agahnim')
             world.castle_tower.completed = true;
-        else if (match = token.match(/chests=(\d+)/))
-            world[region].chests = +match[1];
-        else if (match = token.match(/medallion=(\w+)/))
-            world[region].medallion = match[1];
-        else {
+        else if (m = token.match(/(\w+)(?:-(\w+))?=(.+)/)) {
+            const [, key, _region = region, value] = m;
+            world[_region][key] = isNaN(v = +value) ? value : v;
+            if (key === 'prize') world[_region].completed = true;
+        } else {
             const change = (token, value) => items[token] = value;
             const values = {
                 sword: ['sword', 1],
@@ -662,9 +662,27 @@ describe('World', () => {
         ['lightworld_deathmountain_east', 'island_dm', 'mitt moonpearl mirror', true],
         ['lightworld_deathmountain_east', 'spiral', null, 'always'],
         ['lightworld_deathmountain_east', 'paradox', null, 'always'],
+        ['lightworld_deathmountain_east', 'mimic', null, false],
+        ['lightworld_deathmountain_east', 'mimic', 'moonpearl mitt hammer somaria sword mirror bombos', 'medallion'],
+        ['lightworld_deathmountain_east', 'mimic', 'moonpearl mitt hammer somaria sword mirror bombos ether quake', 'possible'],
+        ['lightworld_deathmountain_east', 'mimic', 'moonpearl mitt hammer somaria sword mirror bombos ether quake firerod', true],
+        ['lightworld_deathmountain_east', 'mimic', 'medallion-turtle=bombos moonpearl mitt hammer somaria sword mirror bombos', 'possible'],
+        ['lightworld_deathmountain_east', 'mimic', 'medallion-turtle=bombos moonpearl mitt hammer somaria sword mirror bombos firerod', true],
+        ['lightworld_deathmountain_east', 'mimic', 'medallion-turtle=ether moonpearl mitt hammer somaria sword mirror ether', 'possible'],
+        ['lightworld_deathmountain_east', 'mimic', 'medallion-turtle=ether moonpearl mitt hammer somaria sword mirror ether firerod', true],
+        ['lightworld_deathmountain_east', 'mimic', 'medallion-turtle=quake moonpearl mitt hammer somaria sword mirror quake', 'possible'],
+        ['lightworld_deathmountain_east', 'mimic', 'medallion-turtle=quake moonpearl mitt hammer somaria sword mirror quake firerod', true],
 
         ['lightworld_northwest', 'altar', null, false],
         ['lightworld_northwest', 'altar', 'book', 'viewable'],
+        ['lightworld_northwest', 'altar', 'prize-eastern=pendant prize-desert=pendant prize-hera=pendant', true],
+        ['lightworld_northwest', 'altar', 'prize-eastern=pendant prize-desert=pendant prize-hera=pendant-green', true],
+        ['lightworld_northwest', 'altar', 'prize-eastern=pendant prize-desert=pendant-green prize-hera=pendant', true],
+        ['lightworld_northwest', 'altar', 'prize-eastern=pendant prize-desert=pendant-green prize-hera=pendant-green', true],
+        ['lightworld_northwest', 'altar', 'prize-eastern=pendant-green prize-desert=pendant prize-hera=pendant', true],
+        ['lightworld_northwest', 'altar', 'prize-eastern=pendant-green prize-desert=pendant prize-hera=pendant-green', true],
+        ['lightworld_northwest', 'altar', 'prize-eastern=pendant-green prize-desert=pendant-green prize-hera=pendant', true],
+        ['lightworld_northwest', 'altar', 'prize-eastern=pendant-green prize-desert=pendant-green prize-hera=pendant-green', true],
         ['lightworld_northwest', 'mushroom', null, 'always'],
         ['lightworld_northwest', 'hideout', null, 'always'],
         ['lightworld_northwest', 'tree', null, 'viewable'],
@@ -706,6 +724,8 @@ describe('World', () => {
         ['lightworld_northeast', 'witch', null, false],
         ['lightworld_northeast', 'witch', 'mushroom', true],
         ['lightworld_northeast', 'sahasrahla_hut', null, 'always'],
+        ['lightworld_northeast', 'sahasrahla', null, false],
+        ['lightworld_northeast', 'sahasrahla', 'prize-eastern=pendant-green', true],
 
         ['lightworld_south', 'maze', null, 'always'],
         ['lightworld_south', 'library', null, 'viewable'],
@@ -781,6 +801,11 @@ describe('World', () => {
         ['darkworld_northeast', 'catfish', 'moonpearl glove', true],
         ['darkworld_northeast', 'pyramid', null, 'always'],
         ['darkworld_northeast', 'fairy_dw', null, false],
+        ['darkworld_northeast', 'fairy_dw', 'prize-eastern=crystal-red prize-hera=crystal-red moonpearl agahnim hammer', true],
+        ['darkworld_northeast', 'fairy_dw', 'prize-eastern=crystal-red prize-hera=crystal-red moonpearl agahnim hookshot glove mirror', true],
+        ['darkworld_northeast', 'fairy_dw', 'prize-eastern=crystal-red prize-hera=crystal-red moonpearl agahnim hookshot flippers mirror', true],
+        ['darkworld_northeast', 'fairy_dw', 'prize-eastern=crystal-red prize-hera=crystal-red moonpearl agahnim mitt mirror', true],
+        ['darkworld_northeast', 'fairy_dw', 'prize-eastern=crystal-red prize-hera=crystal-red moonpearl glove hammer', true],
 
         ['darkworld_south', 'dig_game', null, 'always'],
         ['darkworld_south', 'stumpy', null, 'always'],
