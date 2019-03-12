@@ -29,6 +29,8 @@ const update = (tokens, items, world, region) =>
             world.castle_tower.completed = true;
         else if (match = token.match(/chests=(\d+)/))
             world[region].chests = +match[1];
+        else if (match = token.match(/medallion=(\w+)/))
+            world[region].medallion = match[1];
         else {
             const change = (token, value) => items[token] = value;
             const values = {
@@ -105,6 +107,10 @@ describe('World', () => {
         ['ice', null, false],
         ['ice', 'moonpearl flippers mitt firerod', true],
         ['ice', 'moonpearl flippers mitt bombos sword', true],
+
+        ['mire', null, false],
+        ['mire', 'moonpearl boots sword flute mitt', true],
+        ['mire', 'moonpearl hookshot sword flute mitt', true],
 
         ['lightworld_deathmountain_west', null, false],
         ['lightworld_deathmountain_west', 'flute', true],
@@ -382,6 +388,58 @@ describe('World', () => {
         with_cases(
         ['ice', null, 'possible'],
         ['ice', 'hammer', true],
+        (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world, region);
+            world[region].can_progress({ items, region: world[region] }).should.equal(state);
+        }));
+
+    });
+
+    context('misery mire', () => {
+
+        with_cases(
+        ['mire', null, false],
+        ['mire', 'somaria bombos', 'medallion'],
+        ['mire', 'somaria bombos ether quake', 'possible'],
+        ['mire', 'somaria bombos ether quake firerod', 'dark'],
+        ['mire', 'somaria bombos ether quake lamp', true],
+        ['mire', 'medallion=bombos somaria bombos', 'possible'],
+        ['mire', 'medallion=bombos somaria bombos firerod', 'dark'],
+        ['mire', 'medallion=bombos somaria bombos lamp', true],
+        ['mire', 'medallion=ether somaria ether', 'possible'],
+        ['mire', 'medallion=ether somaria ether firerod', 'dark'],
+        ['mire', 'medallion=ether somaria ether lamp', true],
+        ['mire', 'medallion=quake somaria quake', 'possible'],
+        ['mire', 'medallion=quake somaria quake firerod', 'dark'],
+        ['mire', 'medallion=quake somaria quake lamp', true],
+        (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world, region);
+            world[region].can_complete({ items, region: world[region] }).should.equal(state);
+        }));
+
+        with_cases(
+        ['mire', null, false],
+        ['mire', 'bombos', 'medallion'],
+        ['mire', 'bombos ether quake', 'possible'],
+        ['mire', 'bombos ether quake firerod', true],
+        ['mire', 'bombos ether quake lamp', true],
+        ['mire', 'chests=1 bombos ether quake', 'possible'],
+        ['mire', 'chests=1 bombos ether quake lamp somaria', true],
+        ['mire', 'medallion=bombos bombos', 'possible'],
+        ['mire', 'medallion=bombos bombos firerod', true],
+        ['mire', 'medallion=bombos bombos lamp', true],
+        ['mire', 'medallion=bombos chests=1 bombos', 'possible'],
+        ['mire', 'medallion=bombos chests=1 bombos lamp somaria', true],
+        ['mire', 'medallion=ether ether', 'possible'],
+        ['mire', 'medallion=ether ether firerod', true],
+        ['mire', 'medallion=ether ether lamp', true],
+        ['mire', 'medallion=ether chests=1 ether', 'possible'],
+        ['mire', 'medallion=ether chests=1 ether lamp somaria', true],
+        ['mire', 'medallion=quake quake', 'possible'],
+        ['mire', 'medallion=quake quake firerod', true],
+        ['mire', 'medallion=quake quake lamp', true],
+        ['mire', 'medallion=quake chests=1 quake', 'possible'],
+        ['mire', 'medallion=quake chests=1 quake lamp somaria', true],
         (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
             update(progress, items, world, region);
             world[region].can_progress({ items, region: world[region] }).should.equal(state);
