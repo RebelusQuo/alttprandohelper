@@ -119,6 +119,10 @@ describe('World', () => {
         ['turtle', 'moonpearl mitt hammer somaria sword hookshot flute', true],
         ['turtle', 'moonpearl mitt hammer somaria sword hookshot lamp', true],
 
+        ['castle_tower', null, false],
+        ['castle_tower', 'cape', true],
+        ['castle_tower', 'mastersword', true],
+
         ['lightworld_deathmountain_west', null, false],
         ['lightworld_deathmountain_west', 'flute', true],
         ['lightworld_deathmountain_west', 'glove lamp', true],
@@ -493,7 +497,7 @@ describe('World', () => {
         ['turtle', 'medallion=quake icerod firerod quake mirrorshield lamp', true],
         (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
             update(progress, items, world, region);
-            world[region].can_complete({ items, region: world[region] }).should.equal(state);
+            world[region].can_complete({ items, region: world[region], mode }).should.equal(state);
         }));
 
         with_cases(
@@ -606,6 +610,19 @@ describe('World', () => {
         (region, progress, state) => it(`can progress ${region} ${is(state)} ${_with(progress)}`, () => {
             update(progress, items, world, region);
             world[region].can_progress({ items, region: world[region] }).should.equal(state);
+        }));
+
+    });
+
+    context('agahnim encounter', () => {
+
+        with_cases(
+        ['castle_tower', null, false],
+        ['castle_tower', 'sword', 'dark'],
+        ['castle_tower', 'sword lamp', true],
+        (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world, region);
+            world[region].can_complete({ items, region: world[region], mode }).should.equal(state);
         }));
 
     });
