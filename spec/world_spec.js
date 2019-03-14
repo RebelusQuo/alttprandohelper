@@ -1,8 +1,11 @@
 const { with_cases, helpers } = require('./spec_helper');
+const chai_each = require('chai-each');
+const _ = require('lodash');
 
 const chai = require('chai');
 const expect = chai.expect;
 chai.use(helpers);
+chai.use(chai_each);
 chai.should();
 
 const create_world = require('../src/world');
@@ -130,6 +133,23 @@ describe('World', () => {
     });
 
     context('overworld locations', () => {
+
+        with_cases(
+        'lightworld_deathmountain_west',
+        'lightworld_deathmountain_east',
+        'lightworld_northwest',
+        'lightworld_northeast',
+        'lightworld_south',
+        'castle_escape',
+        'darkworld_deathmountain_west',
+        'darkworld_deathmountain_east',
+        'darkworld_northwest',
+        'darkworld_northeast',
+        'darkworld_south',
+        'darkworld_mire',
+        (region) => it(`${region} locations starts out not marked`, () => {
+            _.map(world[region].locations).should.each.have.property('marked').equal(false);
+        }));
 
         with_cases(
         ['lightworld_deathmountain_west', 'ether', null, false],

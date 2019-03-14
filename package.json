@@ -12,7 +12,8 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "lodash": "^4.17.11",
-    "chai": "^4.2.0"
+    "chai": "^4.2.0",
+    "chai-each": "^0.0.1"
   },
   "babel": {
     "presets": [
