@@ -840,6 +840,16 @@ describe('World', () => {
             world[region].locations[name].should.have.property('marked').equal(true);
         }));
 
+        with_cases(
+        ['castle_escape', 'escape_side', null, 'always'],
+        ['castle_escape', 'escape_dark', null, 'always'],
+        (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
+            update(progress, items, world);
+            state === 'always' ?
+                expect(world[region].locations[name].can_access).to.be.falsy :
+                world[region].locations[name].can_access({ items, world, mode }).should.equal(state);
+        }));
+
     });
 
 });
