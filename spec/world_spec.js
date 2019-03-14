@@ -823,4 +823,23 @@ describe('World', () => {
 
     });
 
+    context('standard mode', () => {
+
+        beforeEach(() => {
+            mode = { standard: true };
+            world = create_world(mode).world;
+        });
+
+        with_cases(
+        ['castle_escape', 'sanctuary'],
+        ['castle_escape', 'escape_dark'],
+        ['castle_escape', 'castle'],
+        ['castle_escape', 'secret'],
+        ['lightworld_south', 'link_house'],
+        (region, name) => it(`${region} - ${name} starts out marked`, () => {
+            world[region].locations[name].should.have.property('marked').equal(true);
+        }));
+
+    });
+
 });
