@@ -50,6 +50,13 @@ describe('World', () => {
         items = create_items().items;
     });
 
+    with_cases({
+        eastern: 3, desert: 2, hera: 2, darkness: 5, swamp: 6,
+        skull: 2, thieves: 4, ice: 3, mire: 2, turtle: 5
+    }, (region, chests) => it(`${region} starts out with its maximum ${chests} chests`, () => {
+        world[region].should.include({ chests, chest_limit: chests });
+    }));
+
     context('regions', () => {
 
         with_cases(
