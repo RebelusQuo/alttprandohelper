@@ -852,4 +852,29 @@ describe('World', () => {
 
     });
 
+    context('open keysanity mode', () => {
+
+        beforeEach(() => {
+            mode = { open: true, keysanity: true };
+            world = create_world(mode).world;
+        });
+
+        with_cases({
+            eastern: 6, desert: 6, hera: 6, darkness: 14, swamp: 10,
+            skull: 7, thieves: 8, ice: 8, mire: 8, turtle: 12,
+            ganon_tower: 27
+        }, (region, chests) => it(`${region} starts out with its maximum ${chests} chests`, () => {
+            world[region].should.include({ chests, chest_limit: chests });
+        }));
+
+        with_cases({
+            eastern: 0, desert: 1, hera: 1, darkness: 6, swamp: 1,
+            skull: 2, thieves: 1, ice: 2, mire: 3, turtle: 4,
+            castle_escape: 1, castle_tower: 2, ganon_tower: 4
+        }, (region, keys) => it(`${region} starts without keys and has a maximum of ${keys} keys`, () => {
+            world[region].should.include({ keys: 0, key_limit: keys });
+        }));
+
+    });
+
 });
