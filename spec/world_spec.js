@@ -35,6 +35,8 @@ const update = (tokens, items, world, region) =>
             world.castle_tower.completed = true;
         else if (token === 'big_key')
             world[region].big_key = true;
+        else if (m = token.match(/door=(.*)/))
+            _.each(m[1].split('-'), door => world[region].doors[door].opened = true);
         else if (m = token.match(/(\w+)(?:-(\w+))?=(.+)/)) {
             const [, key, _region = region, value] = m;
             world[_region][key] = isNaN(v = +value) ? value : v;
@@ -929,6 +931,93 @@ describe('World', () => {
             ['eastern', 'boss', null, false],
             ['eastern', 'boss', 'big_key bow', 'dark'],
             ['eastern', 'boss', 'big_key bow lamp', true],
+            (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
+                update(progress, items, world, region);
+                state === 'always' ?
+                    expect(world[region].locations[name].can_access).to.be.falsy :
+                    world[region].locations[name].can_access({ items, region: world[region] }).should.equal(state);
+            }));
+
+        });
+
+        context('desert palace', () => {
+
+            it('can complete is same as can access boss', () => {
+                const region = world.desert;
+                const arg = { region };
+                const can_access = sinon.fake();
+                region.locations.boss.can_access = can_access;
+
+                region.can_complete(arg);
+
+                can_access.should.have.been.calledOnceWith(a.ref(arg));
+            });
+
+            with_cases(...keysanity_progress_cases,
+            (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
+                const region = world.desert, n = 6;
+                const arg = { items, region };
+                states = _.shuffle(fill_with_false(states, n));
+                states = _.map(states, x => sinon.fake.returns(x));
+                _.each(region.locations, location => location.can_access = states.pop());
+
+                region.can_progress(arg).should.equal(state);
+                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
+            }));
+
+            with_cases(
+            ['desert', 'north', null, false],
+            ['desert', 'north', 'door=south glove', false],
+            ['desert', 'north', 'glove', true],
+            ['desert', 'north', 'door=south keys=1 glove', true],
+            ['desert', 'south', null, false],
+            ['desert', 'south', 'door=north glove', false],
+            ['desert', 'south', 'glove', true],
+            ['desert', 'south', 'keys=1', true],
+            (region, name, progress, state) => it(`can access ${region} - door ${name} ${is(state)} ${_with(progress)}`, () => {
+                update(progress, items, world, region);
+                world[region].doors[name].can_access({ items, region: world[region] }).should.equal(state);
+            }));
+
+            with_cases(
+            ['desert', 'map', null, 'always'],
+            ['desert', 'torch', null, false],
+            ['desert', 'torch', 'boots', true],
+            ['desert', 'big_key', null, false],
+            ['desert', 'compass', null, false],
+            ['desert', 'big_key', 'door=south', true],
+            ['desert', 'compass', 'door=south', true],
+            ['desert', 'big_key', 'keys=1', true],
+            ['desert', 'compass', 'keys=1', true],
+            ['desert', 'big_key', 'door=north glove', false],
+            ['desert', 'compass', 'door=north glove', false],
+            ['desert', 'big_key', 'glove', true],
+            ['desert', 'compass', 'glove', true],
+            ['desert', 'big_chest', null, false],
+            ['desert', 'big_chest', 'big_key', true],
+            ['desert', 'boss', null, false],
+            ['desert', 'boss', 'door=south keys=1 big_key glove firerod', true],
+            ['desert', 'boss', 'door=south keys=1 big_key glove lamp sword', true],
+            ['desert', 'boss', 'door=south keys=1 big_key glove lamp hammer', true],
+            ['desert', 'boss', 'door=south keys=1 big_key glove lamp bow', true],
+            ['desert', 'boss', 'door=south keys=1 big_key glove lamp icerod', true],
+            ['desert', 'boss', 'door=south keys=1 big_key glove lamp somaria', true],
+            ['desert', 'boss', 'door=south keys=1 big_key glove lamp byrna', true],
+            ['desert', 'boss', 'door=north big_key glove firerod', true],
+            ['desert', 'boss', 'door=north big_key glove lamp sword', true],
+            ['desert', 'boss', 'door=north big_key glove lamp hammer', true],
+            ['desert', 'boss', 'door=north big_key glove lamp bow', true],
+            ['desert', 'boss', 'door=north big_key glove lamp icerod', true],
+            ['desert', 'boss', 'door=north big_key glove lamp somaria', true],
+            ['desert', 'boss', 'door=north big_key glove lamp byrna', true],
+            ['desert', 'boss', 'big_key glove firerod', true],
+            ['desert', 'boss', 'big_key glove lamp sword', true],
+            ['desert', 'boss', 'big_key glove lamp hammer', true],
+            ['desert', 'boss', 'big_key glove lamp bow', true],
+            ['desert', 'boss', 'big_key glove lamp icerod', true],
+            ['desert', 'boss', 'big_key glove lamp somaria', true],
+            ['desert', 'boss', 'big_key glove lamp byrna', true],
             (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
                 update(progress, items, world, region);
                 state === 'always' ?
