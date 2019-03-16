@@ -1,10 +1,16 @@
 const { with_cases, helpers } = require('./spec_helper');
+const sinon = require('sinon');
+const sinon_chai = require('sinon-chai');
 const chai_each = require('chai-each');
 const _ = require('lodash');
+
+const a = sinon.match;
+_.assign(a, { ref: a.same });
 
 const chai = require('chai');
 const expect = chai.expect;
 chai.use(helpers);
+chai.use(sinon_chai);
 chai.use(chai_each);
 chai.should();
 
@@ -27,6 +33,8 @@ const update = (tokens, items, world, region) =>
         let m, v;
         if (token === 'agahnim')
             world.castle_tower.completed = true;
+        else if (token === 'big_key')
+            world[region].big_key = true;
         else if (m = token.match(/(\w+)(?:-(\w+))?=(.+)/)) {
             const [, key, _region = region, value] = m;
             world[_region][key] = isNaN(v = +value) ? value : v;
@@ -874,6 +882,61 @@ describe('World', () => {
         }, (region, keys) => it(`${region} starts without keys and has a maximum of ${keys} keys`, () => {
             world[region].should.include({ keys: 0, key_limit: keys });
         }));
+
+        const fill_with_false = (array, n) => [ ...array, ...Array(n - array.length).fill(false)];
+        const keysanity_progress_cases = [
+            [[], false],
+            [['dark'], 'dark'],
+            [['dark', 'possible'], 'possible'],
+            [['dark', 'possible', true], true],
+            [['dark', 'possible', true, 'medallion'], 'medallion']
+        ];
+
+        context('eastern palace', () => {
+
+            it('can complete is same as can access boss', () => {
+                const region = world.eastern;
+                const arg = { region };
+                const can_access = sinon.fake();
+                region.locations.boss.can_access = can_access;
+
+                region.can_complete(arg);
+
+                can_access.should.have.been.calledOnceWith(a.ref(arg));
+            });
+
+            with_cases(...keysanity_progress_cases,
+            (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
+                const region = world.eastern, n = 6;
+                const arg = { items, region };
+                states = _.shuffle(fill_with_false(states, n));
+                states = _.map(states, x => sinon.fake.returns(x));
+                _.each(region.locations, location => location.can_access = states.pop());
+
+                region.can_progress(arg).should.equal(state);
+                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
+            }));
+
+            with_cases(
+            ['eastern', 'compass', null, 'always'],
+            ['eastern', 'cannonball', null, 'always'],
+            ['eastern', 'map', null, 'always'],
+            ['eastern', 'big_chest', null, false],
+            ['eastern', 'big_chest', 'big_key', true],
+            ['eastern', 'big_key', null, 'dark'],
+            ['eastern', 'big_key', 'lamp', true],
+            ['eastern', 'boss', null, false],
+            ['eastern', 'boss', 'big_key bow', 'dark'],
+            ['eastern', 'boss', 'big_key bow lamp', true],
+            (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
+                update(progress, items, world, region);
+                state === 'always' ?
+                    expect(world[region].locations[name].can_access).to.be.falsy :
+                    world[region].locations[name].can_access({ items, region: world[region] }).should.equal(state);
+            }));
+
+        });
 
     });
 

@@ -13,7 +13,9 @@
     "babel-preset-stage-2": "^6.24.1",
     "lodash": "^4.17.11",
     "chai": "^4.2.0",
-    "chai-each": "^0.0.1"
+    "chai-each": "^0.0.1",
+    "sinon-chai": "^3.3.0",
+    "sinon": "^7.2.7"
   },
   "babel": {
     "presets": [
