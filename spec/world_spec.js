@@ -1765,6 +1765,63 @@ describe('World', () => {
 
         });
 
+        context('swamp palace', () => {
+
+            it('can complete is same as can access boss', () => {
+                const region = world.swamp;
+                const arg = { region };
+                const can_access = sinon.fake();
+                region.locations.boss.can_access = can_access;
+
+                region.can_complete(arg);
+
+                can_access.should.have.been.calledOnceWith(a.ref(arg));
+            });
+
+            with_cases(...keysanity_progress_cases,
+            (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
+                const region = world.swamp, n = 10;
+                const arg = { items, region, mode };
+                states = _.shuffle(fill_with_false(states, n));
+                states = _.map(states, x => sinon.fake.returns(x));
+                _.each(region.locations, location => location.can_access = states.pop());
+
+                const actual_state = region.can_progress(arg)
+
+                actual_state.should.equal(state);
+                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
+            }));
+
+            with_cases(
+            ['swamp', 'entrance', null, 'always'],
+            ['swamp', 'map', null, false],
+            ['swamp', 'map', 'keys=1', true],
+            ['swamp', 'big_key', null, false],
+            ['swamp', 'west',    null, false],
+            ['swamp', 'compass', null, false],
+            ['swamp', 'big_key', 'keys=1 hammer', true],
+            ['swamp', 'west',    'keys=1 hammer', true],
+            ['swamp', 'compass', 'keys=1 hammer', true],
+            ['swamp', 'big_chest', null, false],
+            ['swamp', 'big_chest', 'big_key keys=1 hammer', true],
+            ['swamp', 'waterfall',    null, false],
+            ['swamp', 'toilet_left',  null, false],
+            ['swamp', 'toilet_right', null, false],
+            ['swamp', 'boss',         null, false],
+            ['swamp', 'waterfall',    'keys=1 hammer hookshot', true],
+            ['swamp', 'toilet_left',  'keys=1 hammer hookshot', true],
+            ['swamp', 'toilet_right', 'keys=1 hammer hookshot', true],
+            ['swamp', 'boss',         'keys=1 hammer hookshot', true],
+            (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
+                update(progress, items, world, region);
+                state === 'always' ?
+                    expect(world[region].locations[name].can_access).to.be.falsy :
+                    world[region].locations[name].can_access({ items, region: world[region], mode }).should.equal(state);
+            }));
+
+        });
+
     });
 
 });
