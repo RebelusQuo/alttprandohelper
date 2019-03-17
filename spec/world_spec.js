@@ -865,7 +865,7 @@ describe('World', () => {
     context('open keysanity mode', () => {
 
         beforeEach(() => {
-            mode = { open: true, keysanity: true, hammery_jump: false };
+            mode = { open: true, keysanity: true, hammery_jump: false, bomb_jump: false };
             world = create_world(mode).world;
         });
 
@@ -1920,6 +1920,84 @@ describe('World', () => {
                     expect(world[region].locations[name].can_access).to.be.falsy :
                     world[region].locations[name].can_access({ items, region: world[region], mode }).should.equal(state);
             }));
+
+        });
+
+        context('ice palace', () => {
+
+            it('can complete is same as can access boss', () => {
+                const region = world.ice;
+                const arg = { region };
+                const can_access = sinon.fake();
+                region.locations.boss.can_access = can_access;
+
+                region.can_complete(arg);
+
+                can_access.should.have.been.calledOnceWith(a.ref(arg));
+            });
+
+            with_cases(...keysanity_progress_cases,
+            (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
+                const region = world.ice, n = 8;
+                const arg = { items, region, mode };
+                states = _.shuffle(fill_with_false(states, n));
+                states = _.map(states, x => sinon.fake.returns(x));
+                _.each(region.locations, location => location.can_access = states.pop());
+
+                const actual_state = region.can_progress(arg)
+
+                actual_state.should.equal(state);
+                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
+            }));
+
+            with_cases(
+            ['ice', 'compass', null, 'always'],
+            ['ice', 'freezor', null, 'always'],
+            ['ice', 'iced_t', null, 'always'],
+            ['ice', 'big_chest', null, false],
+            ['ice', 'big_chest', 'big_key', true],
+            ['ice', 'spike', null, 'possible'],
+            ['ice', 'spike', 'hookshot', true],
+            ['ice', 'map',     null, false],
+            ['ice', 'big_key', null, false],
+            ['ice', 'map',     'hammer', 'possible'],
+            ['ice', 'big_key', 'hammer', 'possible'],
+            ['ice', 'map',     'hammer hookshot', true],
+            ['ice', 'big_key', 'hammer hookshot', true],
+            ['ice', 'boss', null, false],
+            ['ice', 'boss', 'hammer', 'possible'],
+            ['ice', 'boss', 'big_key keys=1 hammer somaria', true],
+            ['ice', 'boss', 'big_key keys=2 hammer', true],
+            (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
+                update(progress, items, world, region);
+                state === 'always' ?
+                    expect(world[region].locations[name].can_access).to.be.falsy :
+                    world[region].locations[name].can_access({ items, region: world[region], mode }).should.equal(state);
+            }));
+
+            context('knowing bomb jump', () => {
+
+                beforeEach(() => {
+                    mode = { ...mode, bomb_jump: true };
+                    world = create_world(mode).world;
+                });
+
+                with_cases(
+                ['ice', 'spike', null, true],
+                ['ice', 'map', null, false],
+                ['ice', 'big_key', null, false],
+                ['ice', 'map', 'hammer', true],
+                ['ice', 'big_key', 'hammer', true],
+                ['ice', 'boss', null, false],
+                ['ice', 'boss', 'hammer', true],
+                (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
+                    update(progress, items, world, region);
+                    state === 'always' ?
+                        expect(world[region].locations[name].can_access).to.be.falsy :
+                        world[region].locations[name].can_access({ items, region: world[region], mode }).should.equal(state);
+                }));
+            });
 
         });
 
