@@ -2001,6 +2001,106 @@ describe('World', () => {
 
         });
 
+        context('mystery mire', () => {
+
+            it('can complete is same as can access boss', () => {
+                const region = world.mire;
+                const arg = { region };
+                const can_access = sinon.fake();
+                region.locations.boss.can_access = can_access;
+
+                region.can_complete(arg);
+
+                can_access.should.have.been.calledOnceWith(a.ref(arg));
+            });
+
+            with_cases(...keysanity_progress_cases,
+            (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
+                const region = world.mire, n = 8;
+                const arg = { items, region, mode };
+                states = _.shuffle(fill_with_false(states, n));
+                states = _.map(states, x => sinon.fake.returns(x));
+                _.each(region.locations, location => location.can_access = states.pop());
+
+                const actual_state = region.can_progress(arg)
+
+                actual_state.should.equal(state);
+                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
+            }));
+
+            with_cases(
+            ['mire', 'main',   null, false],
+            ['mire', 'bridge', null, false],
+            ['mire', 'map',    null, false],
+            ['mire', 'spike',  null, false],
+            ['mire', 'main',   'bombos', 'medallion'],
+            ['mire', 'bridge', 'bombos', 'medallion'],
+            ['mire', 'map',    'bombos', 'medallion'],
+            ['mire', 'spike',  'bombos', 'medallion'],
+            ['mire', 'main',   'bombos ether quake', true],
+            ['mire', 'bridge', 'bombos ether quake', true],
+            ['mire', 'map',    'bombos ether quake', true],
+            ['mire', 'spike',  'bombos ether quake', true],
+            ['mire', 'main',   'medallion=bombos bombos', true],
+            ['mire', 'bridge', 'medallion=bombos bombos', true],
+            ['mire', 'map',    'medallion=bombos bombos', true],
+            ['mire', 'spike',  'medallion=bombos bombos', true],
+            ['mire', 'main',   'medallion=ether ether', true],
+            ['mire', 'bridge', 'medallion=ether ether', true],
+            ['mire', 'map',    'medallion=ether ether', true],
+            ['mire', 'spike',  'medallion=ether ether', true],
+            ['mire', 'main',   'medallion=quake quake', true],
+            ['mire', 'bridge', 'medallion=quake quake', true],
+            ['mire', 'map',    'medallion=quake quake', true],
+            ['mire', 'spike',  'medallion=quake quake', true],
+            ['mire', 'compass', null, false],
+            ['mire', 'big_key', null, false],
+            ['mire', 'compass', 'firerod bombos', 'medallion'],
+            ['mire', 'big_key', 'firerod bombos', 'medallion'],
+            ['mire', 'compass', 'lamp bombos', 'medallion'],
+            ['mire', 'big_key', 'lamp bombos', 'medallion'],
+            ['mire', 'compass', 'firerod bombos ether quake', true],
+            ['mire', 'big_key', 'firerod bombos ether quake', true],
+            ['mire', 'compass', 'lamp bombos ether quake', true],
+            ['mire', 'big_key', 'lamp bombos ether quake', true],
+            ['mire', 'compass', 'medallion=bombos firerod bombos', true],
+            ['mire', 'big_key', 'medallion=bombos firerod bombos', true],
+            ['mire', 'compass', 'medallion=bombos lamp bombos', true],
+            ['mire', 'big_key', 'medallion=bombos lamp bombos', true],
+            ['mire', 'compass', 'medallion=ether firerod ether', true],
+            ['mire', 'big_key', 'medallion=ether firerod ether', true],
+            ['mire', 'compass', 'medallion=ether lamp ether', true],
+            ['mire', 'big_key', 'medallion=ether lamp ether', true],
+            ['mire', 'compass', 'medallion=quake firerod quake', true],
+            ['mire', 'big_key', 'medallion=quake firerod quake', true],
+            ['mire', 'compass', 'medallion=quake lamp quake', true],
+            ['mire', 'big_key', 'medallion=quake lamp quake', true],
+            ['mire', 'big_chest', null, false],
+            ['mire', 'big_chest', 'big_key bombos', 'medallion'],
+            ['mire', 'big_chest', 'big_key bombos ether quake', true],
+            ['mire', 'big_chest', 'big_key medallion=bombos bombos', true],
+            ['mire', 'big_chest', 'big_key medallion=ether ether', true],
+            ['mire', 'big_chest', 'big_key medallion=quake quake', true],
+            ['mire', 'boss', null, false],
+            ['mire', 'boss', 'big_key somaria bombos', 'medallion'],
+            ['mire', 'boss', 'big_key somaria bombos ether quake', 'dark'],
+            ['mire', 'boss', 'big_key somaria bombos ether quake lamp', true],
+            ['mire', 'boss', 'big_key medallion=bombos somaria bombos', 'dark'],
+            ['mire', 'boss', 'big_key medallion=bombos somaria bombos lamp', true],
+            ['mire', 'boss', 'big_key medallion=ether somaria ether', 'dark'],
+            ['mire', 'boss', 'big_key medallion=ether somaria ether lamp', true],
+            ['mire', 'boss', 'big_key medallion=quake somaria quake', 'dark'],
+            ['mire', 'boss', 'big_key medallion=quake somaria quake lamp', true],
+            (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
+                update(progress, items, world, region);
+                state === 'always' ?
+                    expect(world[region].locations[name].can_access).to.be.falsy :
+                    world[region].locations[name].can_access({ items, region: world[region], mode }).should.equal(state);
+            }));
+
+        });
+
     });
 
 });
