@@ -1822,6 +1822,54 @@ describe('World', () => {
 
         });
 
+        context('skull woods', () => {
+
+            it('can complete is same as can access boss', () => {
+                const region = world.skull;
+                const arg = { region };
+                const can_access = sinon.fake();
+                region.locations.boss.can_access = can_access;
+
+                region.can_complete(arg);
+
+                can_access.should.have.been.calledOnceWith(a.ref(arg));
+            });
+
+            with_cases(...keysanity_progress_cases,
+            (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
+                const region = world.skull, n = 7;
+                const arg = { items, region, mode };
+                states = _.shuffle(fill_with_false(states, n));
+                states = _.map(states, x => sinon.fake.returns(x));
+                _.each(region.locations, location => location.can_access = states.pop());
+
+                const actual_state = region.can_progress(arg)
+
+                actual_state.should.equal(state);
+                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
+            }));
+
+            with_cases(
+            ['skull', 'big_key', null, 'always'],
+            ['skull', 'compass', null, 'always'],
+            ['skull', 'map', null, 'always'],
+            ['skull', 'pot_prison', null, 'always'],
+            ['skull', 'big_chest', null, false],
+            ['skull', 'big_chest', 'big_key', true],
+            ['skull', 'bridge', null, false],
+            ['skull', 'bridge', 'firerod', true],
+            ['skull', 'boss', null, false],
+            ['skull', 'boss', 'firerod sword', true],
+            (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
+                update(progress, items, world, region);
+                state === 'always' ?
+                    expect(world[region].locations[name].can_access).to.be.falsy :
+                    world[region].locations[name].can_access({ items, region: world[region], mode }).should.equal(state);
+            }));
+
+        });
+
     });
 
 });
