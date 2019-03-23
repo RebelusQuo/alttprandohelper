@@ -725,9 +725,9 @@
                     boss: {
                         caption: 'Boss',
                         can_access({ items, region }) {
-                            const keys = keys_left(region);
-                            return (keys >= 4 || keys >= 3 && region.doors.crystaroller.opened) && region.big_key &&
-                                medallion_access(...arguments, () => items.lamp || 'dark');
+                            return keys_left(region) >= 4
+                                - region.doors.crystaroller.opened
+                                && region.big_key && medallion_access(...arguments, () => items.lamp || 'dark');
                         }
                     }
                 },
