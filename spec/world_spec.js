@@ -2394,6 +2394,48 @@ describe('World', () => {
 
         });
 
+        context('agahnim encounter', () => {
+
+            with_cases(
+            ['castle_tower', null, false],
+            ['castle_tower', 'keys=2 sword', 'dark'],
+            ['castle_tower', 'keys=2 sword lamp', true],
+            (region, progress, state) => it(`can complete ${region} ${is(state)} ${_with(progress)}`, () => {
+                update(progress, items, world, region);
+                world[region].can_complete({ items, region: world[region], mode }).should.equal(state);
+            }));
+
+        });
+
+        context('overworld locations', () => {
+
+            with_cases(
+            ['lightworld_deathmountain_east', 'mimic', null, false],
+            ['lightworld_deathmountain_east', 'mimic', 'moonpearl mitt hammer somaria sword mirror bombos', 'medallion'],
+            ['lightworld_deathmountain_east', 'mimic', 'keys-turtle=2 moonpearl mitt hammer somaria sword mirror bombos ether quake', true],
+            ['lightworld_deathmountain_east', 'mimic', 'keys-turtle=2 medallion-turtle=bombos moonpearl mitt hammer somaria sword mirror bombos', true],
+            ['lightworld_deathmountain_east', 'mimic', 'keys-turtle=2 medallion-turtle=ether moonpearl mitt hammer somaria sword mirror ether', true],
+            ['lightworld_deathmountain_east', 'mimic', 'keys-turtle=2 medallion-turtle=quake moonpearl mitt hammer somaria sword mirror quake', true],
+
+            ['castle_escape', 'escape_side', null, false],
+            ['castle_escape', 'escape_side', 'keys-castle_escape=1', 'dark'],
+            ['castle_escape', 'escape_side', 'keys-castle_escape=1 lamp', true],
+
+            ['castle_escape', 'escape_side', 'glove', true],
+            ['castle_tower', 'castle_foyer', null, 'always'],
+            ['castle_tower', 'castle_maze', null, false],
+            ['castle_tower', 'castle_maze', 'keys=1', 'dark'],
+            ['castle_tower', 'castle_maze', 'keys=1 lamp', true],
+
+            (region, name, progress, state) => it(`can access ${region} - ${name} ${is(state)} ${_with(progress)}`, () => {
+                update(progress, items, world, region);
+                state === 'always' ?
+                    expect(world[region].locations[name].can_access).to.be.falsy :
+                    world[region].locations[name].can_access({ items, world, region: world[region], mode }).should.equal(state);
+            }));
+
+        });
+
     });
 
 });
