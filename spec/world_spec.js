@@ -890,7 +890,6 @@ describe('World', () => {
             world[region].should.include({ keys: 0, key_limit: keys });
         }));
 
-        const fill_with_false = (array, n) => [ ...array, ...Array(n - array.length).fill(false)];
         const keysanity_progress_cases = [
             [[], false],
             [['dark'], 'dark'],
@@ -899,31 +898,35 @@ describe('World', () => {
             [['dark', 'possible', true, 'medallion'], 'medallion']
         ];
 
+        const keysanity_can_complete = (region) => () => {
+            region = world[region];
+            const arg = { region };
+            const can_access = sinon.fake();
+            region.locations.boss.can_access = can_access;
+
+            region.can_complete(arg);
+
+            can_access.should.have.been.calledOnceWith(a.ref(arg));
+        };
+
+        const keysanity_can_progress = (region, n, states, state) => () => {
+            region = world[region];
+            const arg = { items, region };
+            states = _.shuffle([ ...states, ...Array(n - states.length).fill(false)]);
+            states = _.map(states, x => sinon.fake.returns(x));
+            _.each(region.locations, location => location.can_access = states.pop());
+
+            region.can_progress(arg).should.equal(state);
+            _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
+        };
+
         context('eastern palace', () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.eastern;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('eastern'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.eastern, n = 6;
-                const arg = { items, region };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                region.can_progress(arg).should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('eastern', 6, states, state)));
 
             with_cases(
             ['eastern', 'compass', null, 'always'],
@@ -947,29 +950,11 @@ describe('World', () => {
 
         context('desert palace', () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.desert;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('desert'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.desert, n = 6;
-                const arg = { items, region };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                region.can_progress(arg).should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('desert', 6, states, state)));
 
             with_cases(
             ['desert', 'north', null, false],
@@ -1030,31 +1015,11 @@ describe('World', () => {
 
         context('tower of hera', () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.hera;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('hera'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.hera, n = 6;
-                const arg = { items, region };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                const actual_state = region.can_progress(arg)
-
-                actual_state.should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('hera', 6, states, state)));
 
             with_cases(
             ['hera', 'cage', null, 'always'],
@@ -1079,31 +1044,11 @@ describe('World', () => {
 
         context('palace of darkness', () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.darkness;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('darkness'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.darkness, n = 14;
-                const arg = { items, region, mode };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                const actual_state = region.can_progress(arg)
-
-                actual_state.should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('darkness', 14, states, state)));
 
             with_cases(
             ['darkness', 'front', null, false],
@@ -1579,31 +1524,11 @@ describe('World', () => {
 
         context('swamp palace', () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.swamp;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('swamp'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.swamp, n = 10;
-                const arg = { items, region, mode };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                const actual_state = region.can_progress(arg)
-
-                actual_state.should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('swamp', 10, states, state)));
 
             with_cases(
             ['swamp', 'entrance', null, 'always'],
@@ -1628,31 +1553,11 @@ describe('World', () => {
 
         context('skull woods', () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.skull;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('skull'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.skull, n = 7;
-                const arg = { items, region, mode };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                const actual_state = region.can_progress(arg)
-
-                actual_state.should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('skull', 7, states, state)));
 
             with_cases(
             ['skull', 'big_key', null, 'always'],
@@ -1676,31 +1581,11 @@ describe('World', () => {
 
         context("thieves' town", () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.thieves;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('thieves'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.thieves, n = 8;
-                const arg = { items, region, mode };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                const actual_state = region.can_progress(arg)
-
-                actual_state.should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('thieves', 8, states, state)));
 
             with_cases(
             ['thieves', 'big_key', null, 'always'],
@@ -1729,31 +1614,11 @@ describe('World', () => {
 
         context('ice palace', () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.ice;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('ice'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.ice, n = 8;
-                const arg = { items, region, mode };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                const actual_state = region.can_progress(arg)
-
-                actual_state.should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('ice', 8, states, state)));
 
             with_cases(
             ['ice', 'compass', null, 'always'],
@@ -1805,31 +1670,11 @@ describe('World', () => {
 
         context('mystery mire', () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.mire;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('mire'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.mire, n = 8;
-                const arg = { items, region, mode };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                const actual_state = region.can_progress(arg)
-
-                actual_state.should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('mire', 8, states, state)));
 
             with_cases(
             ...duplicate_cases(['main', 'bridge', 'map', 'spike'],
@@ -1878,31 +1723,11 @@ describe('World', () => {
 
         context('turtle rock', () => {
 
-            it('can complete is same as can access boss', () => {
-                const region = world.turtle;
-                const arg = { region };
-                const can_access = sinon.fake();
-                region.locations.boss.can_access = can_access;
+            it('can complete is same as can access boss', keysanity_can_complete('turtle'));
 
-                region.can_complete(arg);
-
-                can_access.should.have.been.calledOnceWith(a.ref(arg));
-            });
-
-            with_cases(...keysanity_progress_cases,
-            (states, state) =>
-            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`, () => {
-                const region = world.turtle, n = 12;
-                const arg = { items, region, mode };
-                states = _.shuffle(fill_with_false(states, n));
-                states = _.map(states, x => sinon.fake.returns(x));
-                _.each(region.locations, location => location.can_access = states.pop());
-
-                const actual_state = region.can_progress(arg)
-
-                actual_state.should.equal(state);
-                _.map(region.locations, x => x.can_access).should.have.each.been.calledOnceWith(a.ref(arg));
-            }));
+            with_cases(...keysanity_progress_cases, (states, state) =>
+            it(`can progress use all locations and ${is(state)}${states.length ? ` when some are ${states.join(', ')}`: ''}`,
+                keysanity_can_progress('turtle', 12, states, state)));
 
             with_cases(
             ['turtle', 'crystaroller', null, false],
