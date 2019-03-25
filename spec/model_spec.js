@@ -59,4 +59,16 @@ describe('Model', () => {
             .should.deep.equal(['crystal-red', 'crystal', 'pendant', 'pendant-green', 'unknown']);
     }));
 
+    with_cases('mire', 'turtle',
+    (dungeon) => it(`can cycle ${dungeon} medallions`, () => {
+        const medallions_from_four = (action) => _.times(4,
+            () => (action(dungeon), model.state().dungeons[dungeon].medallion));
+
+        model.state().dungeons[dungeon].medallion.should.equal('unknown');
+        medallions_from_four(x => model.raise_medallion(x))
+            .should.deep.equal(['bombos', 'ether', 'quake', 'unknown']);
+        medallions_from_four(x => model.lower_medallion(x))
+            .should.deep.equal(['quake', 'ether', 'bombos', 'unknown']);
+    }));
+
 });

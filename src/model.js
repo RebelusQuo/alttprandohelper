@@ -11,6 +11,7 @@
 }(typeof self !== 'undefined' ? self : this, function(create_world, create_items, update, _) {
     const open_mode_setting = {};
     const prizes = ['unknown', 'pendant-green', 'pendant', 'crystal', 'crystal-red'];
+    const medallions = ['unknown', 'bombos', 'ether', 'quake'];
 
     const create_model = () => {
         let world = create_world(open_mode_setting).world;
@@ -19,7 +20,7 @@
             state() {
                 const dungeons = (...dungeons) =>
                     _.mapValues(_.pick(world, dungeons), region =>
-                        _.pick(region, 'chests', 'prize'));
+                        _.pick(region, 'chests', 'prize', 'medallion'));
                 return {
                     items,
                     dungeons: dungeons(
@@ -55,6 +56,14 @@
             lower_prize(region) {
                 const value = level_symbol(world[region].prize, prizes, -1);
                 world = update(world, { [region]: { prize: { $set: value } } });
+            },
+            raise_medallion(region) {
+                const value = level_symbol(world[region].medallion, medallions, 1);
+                world = update(world, { [region]: { medallion: { $set: value } } });
+            },
+            lower_medallion(region) {
+                const value = level_symbol(world[region].medallion, medallions, -1);
+                world = update(world, { [region]: { medallion: { $set: value } } });
             }
         }
     };
