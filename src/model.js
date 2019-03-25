@@ -13,8 +13,22 @@
             },
             toggle_item(name) {
                 items = update(items, update.toggle(name));
+            },
+            raise_item(name) {
+                const value = level(items[name], items.limit[name], 1);
+                items = update(items, { [name]: { $set: value } });
+            },
+            lower_item(name) {
+                const value = level(items[name], items.limit[name], -1);
+                items = update(items, { [name]: { $set: value } });
             }
         }
+    };
+
+    const level = (value, limit, delta) => {
+        const [max, min] = limit[0] ? limit : [limit, 0];
+        const modulo = max-min+1;
+        return (value-min + modulo + delta) % modulo + min;
     };
 
     return create_model;
