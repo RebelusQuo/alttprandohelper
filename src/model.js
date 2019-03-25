@@ -10,6 +10,7 @@
     }
 }(typeof self !== 'undefined' ? self : this, function(create_world, create_items, update, _) {
     const open_mode_setting = {};
+    const prizes = ['unknown', 'pendant-green', 'pendant', 'crystal', 'crystal-red'];
 
     const create_model = () => {
         let world = create_world(open_mode_setting).world;
@@ -18,7 +19,7 @@
             state() {
                 const dungeons = (...dungeons) =>
                     _.mapValues(_.pick(world, dungeons), region =>
-                        _.pick(region, 'chests'));
+                        _.pick(region, 'chests', 'prize'));
                 return {
                     items,
                     dungeons: dungeons(
@@ -46,6 +47,14 @@
                 const { chests, chest_limit } = world[region];
                 const value = level(chests, chest_limit, -1);
                 world = update(world, { [region]: { chests: { $set: value } } });
+            },
+            raise_prize(region) {
+                const value = level_symbol(world[region].prize, prizes, 1);
+                world = update(world, { [region]: { prize: { $set: value } } });
+            },
+            lower_prize(region) {
+                const value = level_symbol(world[region].prize, prizes, -1);
+                world = update(world, { [region]: { prize: { $set: value } } });
             }
         }
     };
@@ -54,6 +63,12 @@
         const [max, min] = limit[0] ? limit : [limit, 0];
         const modulo = max-min+1;
         return (value-min + modulo + delta) % modulo + min;
+    };
+
+    const level_symbol = (value, symbols, delta) => {
+        const modulo = symbols.length;
+        const index = symbols.indexOf(value);
+        return symbols[(index + modulo + delta) % modulo];
     };
 
     return create_model;

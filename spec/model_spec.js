@@ -1,4 +1,5 @@
 const with_cases = require('./spec_helper').with_cases;
+const _ = require('lodash');
 
 const chai = require('chai');
 const expect = chai.expect;
@@ -44,6 +45,18 @@ describe('Model', () => {
         model.state().dungeons[dungeon].chests.should.equal(0);
         model.lower_chest(dungeon);
         model.state().dungeons[dungeon].chests.should.be.above(0);
+    }));
+
+    with_cases(...each_dungeon,
+    (dungeon) => it(`can cycle ${dungeon} prizes`, () => {
+        const prizes_from_five = (action) => _.times(5,
+            () => (action(dungeon), model.state().dungeons[dungeon].prize));
+
+        model.state().dungeons[dungeon].prize.should.equal('unknown');
+        prizes_from_five((x) => model.raise_prize(x))
+            .should.deep.equal(['pendant-green', 'pendant', 'crystal', 'crystal-red', 'unknown']);
+        prizes_from_five((x) => model.lower_prize(x))
+            .should.deep.equal(['crystal-red', 'crystal', 'pendant', 'pendant-green', 'unknown']);
     }));
 
 });
