@@ -1,15 +1,30 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('./items'), require('../js/lib/immutable-update'));
+        module.exports = factory(
+            require('./world'),
+            require('./items'),
+            require('../js/lib/immutable-update'),
+            require('lodash'));
     } else {
-        root.create_model = factory(root.create_items, root.update);
+        root.create_model = factory(root.create_world, root.create_items, root.update, root._);
     }
-}(typeof self !== 'undefined' ? self : this, function(create_items, update) {
+}(typeof self !== 'undefined' ? self : this, function(create_world, create_items, update, _) {
+    const open_mode_setting = {};
+
     const create_model = () => {
+        let world = create_world(open_mode_setting).world;
         let items = create_items().items;
         return {
             state() {
-                return { items };
+                const dungeons = (...dungeons) =>
+                    _.mapValues(_.pick(world, dungeons), region =>
+                        _.pick(region, 'chests'));
+                return {
+                    items,
+                    dungeons: dungeons(
+                        'eastern', 'desert', 'hera', 'darkness', 'swamp',
+                        'skull', 'thieves', 'ice', 'mire', 'turtle')
+                };
             },
             toggle_item(name) {
                 items = update(items, update.toggle(name));
@@ -21,6 +36,16 @@
             lower_item(name) {
                 const value = level(items[name], items.limit[name], -1);
                 items = update(items, { [name]: { $set: value } });
+            },
+            raise_chest(region) {
+                const { chests, chest_limit } = world[region];
+                const value = level(chests, chest_limit, 1);
+                world = update(world, { [region]: { chests: { $set: value } } });
+            },
+            lower_chest(region) {
+                const { chests, chest_limit } = world[region];
+                const value = level(chests, chest_limit, -1);
+                world = update(world, { [region]: { chests: { $set: value } } });
             }
         }
     };

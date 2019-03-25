@@ -6,6 +6,11 @@ chai.should();
 
 const create_model = require('../src/model');
 
+const each_dungeon = [
+    'eastern', 'desert', 'hera', 'darkness', 'swamp',
+    'skull', 'thieves', 'ice', 'mire', 'turtle'
+];
+
 describe('Model', () => {
 
     let model;
@@ -32,5 +37,13 @@ describe('Model', () => {
         model.state().items.should.include({ tunic: 1, bow: 0 });
     });
 
+    with_cases(...each_dungeon,
+    (dungeon) => it(`can level ${dungeon} chests`, () => {
+        model.state().dungeons[dungeon].chests.should.be.above(0);
+        model.raise_chest(dungeon);
+        model.state().dungeons[dungeon].chests.should.equal(0);
+        model.lower_chest(dungeon);
+        model.state().dungeons[dungeon].chests.should.be.above(0);
+    }));
 
 });
