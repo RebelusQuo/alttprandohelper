@@ -18,9 +18,24 @@
         let items = create_items().items;
         return {
             state() {
+                const derive_state = (region, args, location) => {
+                    region = !region.can_enter || region.can_enter(args) ||
+                        !!region.can_enter_dark && region.can_enter_dark(args) && 'dark';
+                    // respects dark higher, but possible/viewable highest
+                    const state = region && (location =>
+                        region === true ? location :
+                        location === true ? region :
+                        location
+                    )(location(args));
+                    return _.isString(state) ? state :
+                        state ? 'available' : 'unavailable';
+                };
                 const dungeons = (...dungeons) =>
-                    _.mapValues(_.pick(world, dungeons), region =>
-                        _.pick(region, 'chests', 'prize', 'medallion'));
+                    _.mapValues(_.pick(world, dungeons), region => ({
+                        completable: derive_state(region, { items, world, region }, region.can_complete),
+                        progressable: derive_state(region, { items, world, region }, region.can_progress),
+                        ..._.pick(region, 'chests', 'prize', 'medallion')
+                    }));
                 return {
                     items,
                     dungeons: dungeons(
