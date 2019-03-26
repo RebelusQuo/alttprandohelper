@@ -108,6 +108,11 @@ describe('Model', () => {
         model.state().dungeons[dungeon].progressable.should.equal('marked');
     }));
 
+    it('completable castle_tower is marked when completed', () => {
+        model.toggle_completion('castle_tower');
+        model.state().encounters.castle_tower.completable.should.equal('marked');
+    });
+
     context('dungeons', () => {
 
         with_cases(

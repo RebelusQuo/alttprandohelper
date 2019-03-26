@@ -47,8 +47,8 @@
                         'skull', 'thieves', 'ice', 'mire', 'turtle'),
                     encounters: {
                         castle_tower: {
-                            completable: derive_state(world.castle_tower, { ...args, region: world.castle_tower },
-                                world.castle_tower.can_complete)
+                            completable: (region => region.completed ? 'marked' :
+                                derive_state(region, { ...args, region }, region.can_complete))(world.castle_tower)
                         }
                     }
                 };
