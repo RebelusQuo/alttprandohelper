@@ -235,6 +235,28 @@ describe('Model', () => {
             model.state().lightworld[name].state.should.equal(state);
         }));
 
+        it('can access mimic when having access to turtle rock', () => {
+            _.times(3, () => model.raise_medallion('turtle'));
+            update('flute moonpearl mitt hammer somaria sword mirror quake firerod', model);
+            model.state().lightworld.mimic.state.should.equal('available');
+        });
+
+        it('can access altar when having three pendants', () => {
+            model.toggle_completion('eastern');
+            model.toggle_completion('desert');
+            model.toggle_completion('hera');
+            _.times(1, () => model.raise_prize('eastern'));
+            _.times(2, () => model.raise_prize('desert'));
+            _.times(2, () => model.raise_prize('hera'));
+            model.state().lightworld.altar.state.should.equal('available');
+        });
+
+        it('can access sahasrahla when having the green pendant', () => {
+            model.toggle_completion('eastern');
+            _.times(1, () => model.raise_prize('eastern'));
+            model.state().lightworld.sahasrahla.state.should.equal('available');
+        });
+
     });
 
     context('darkworld locations', () => {
@@ -277,6 +299,15 @@ describe('Model', () => {
             update(progress, model);
             model.state().darkworld[name].state.should.equal(state);
         }));
+
+        it('can access fairy_dw when having two red crystals', () => {
+            model.toggle_completion('eastern');
+            model.toggle_completion('desert');
+            _.times(4, () => model.raise_prize('eastern'));
+            _.times(4, () => model.raise_prize('desert'));
+            update('moonpearl glove hammer', model);
+            model.state().darkworld.fairy_dw.state.should.equal('available');
+        });
 
     });
 
