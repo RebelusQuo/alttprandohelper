@@ -191,15 +191,24 @@ describe('Model', () => {
 
     context('lightworld locations', () => {
 
-        with_cases({
+        const lightworld_samples = {
             lightworld_deathmountain_west: 'ether',
             lightworld_deathmountain_east: 'island_dm',
             lightworld_northwest: 'altar',
             lightworld_northeast: 'zora',
             lightworld_south: 'maze',
             castle_escape: 'sanctuary'
-        }, (region, name) => it(`${region} locations have a region association`, () => {
+        };
+
+        with_cases(lightworld_samples,
+        (region, name) => it(`${region} locations have a region association`, () => {
             model.state().lightworld[name].region.should.equal(region);
+        }));
+
+        with_cases(lightworld_samples,
+        (region, name) => it(`${region} locations can be marked`, () => {
+            model.toggle_overworld_mark(region, name);
+            model.state().lightworld[name].state.should.equal('marked');
         }));
 
         with_cases(
@@ -230,15 +239,24 @@ describe('Model', () => {
 
     context('darkworld locations', () => {
 
-        with_cases({
+        const darkworld_samples = {
             darkworld_deathmountain_west: 'spike',
             darkworld_deathmountain_east: 'rock_hook',
             darkworld_northwest: 'bumper',
             darkworld_northeast: 'catfish',
             darkworld_south: 'dig_game',
             darkworld_mire: 'mire_w'
-        }, (region, name) => it(`${region} locations have a region association`, () => {
+        };
+
+        with_cases(darkworld_samples,
+        (region, name) => it(`${region} locations have a region association`, () => {
             model.state().darkworld[name].region.should.equal(region);
+        }));
+
+        with_cases(darkworld_samples,
+        (region, name) => it(`${region} locations can be marked`, () => {
+            model.toggle_overworld_mark(region, name);
+            model.state().darkworld[name].state.should.equal('marked');
         }));
 
         with_cases(

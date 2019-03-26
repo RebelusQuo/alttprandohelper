@@ -44,7 +44,7 @@
                     _.assign(..._.map(_.pick(world, regions), (region, name) => ({
                         ..._.mapValues(region.locations, location => ({
                             region: name,
-                            state: derive_state(region, { ...args, region },
+                            state: location.marked ? 'marked' : derive_state(region, { ...args, region },
                                 args => !location.can_access || location.can_access(args))
                         }))
                     })));
@@ -114,6 +114,9 @@
             lower_medallion(region) {
                 const value = level_symbol(world[region].medallion, medallions, -1);
                 world = update(world, { [region]: { medallion: { $set: value } } });
+            },
+            toggle_overworld_mark(region, name) {
+                world = update(world, { [region]: { locations: { [name]: update.toggle('marked') } } });
             }
         }
     };
