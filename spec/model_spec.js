@@ -96,6 +96,18 @@ describe('Model', () => {
             .should.deep.equal(['quake', 'ether', 'bombos', 'unknown']);
     }));
 
+    with_cases(...each_dungeon,
+    (dungeon) => it(`completable ${dungeon} is marked when completed`, () => {
+        model.toggle_completion(dungeon);
+        model.state().dungeons[dungeon].completable.should.equal('marked');
+    }));
+
+    with_cases(...each_dungeon,
+    (dungeon) => it(`progressable ${dungeon} is marked when all chests are opened`, () => {
+        model.raise_chest(dungeon);
+        model.state().dungeons[dungeon].progressable.should.equal('marked');
+    }));
+
     context('dungeons', () => {
 
         with_cases(

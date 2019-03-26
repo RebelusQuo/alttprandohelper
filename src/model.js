@@ -32,8 +32,10 @@
                 };
                 const dungeons = (...dungeons) =>
                     _.mapValues(_.pick(world, dungeons), region => ({
-                        completable: derive_state(region, { items, world, region }, region.can_complete),
-                        progressable: derive_state(region, { items, world, region }, region.can_progress),
+                        completable: region.completed ? 'marked' :
+                            derive_state(region, { items, world, region }, region.can_complete),
+                        progressable: !region.chests ? 'marked' :
+                            derive_state(region, { items, world, region }, region.can_progress),
                         ..._.pick(region, 'chests', 'prize', 'medallion')
                     }));
                 return {
@@ -53,6 +55,9 @@
             lower_item(name) {
                 const value = level(items[name], items.limit[name], -1);
                 items = update(items, { [name]: { $set: value } });
+            },
+            toggle_completion(region) {
+                world = update(world, { [region]: update.toggle('completed') });
             },
             raise_chest(region) {
                 const { chests, chest_limit } = world[region];
