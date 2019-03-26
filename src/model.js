@@ -14,10 +14,12 @@
     const medallions = ['unknown', 'bombos', 'ether', 'quake'];
 
     const create_model = () => {
-        let world = create_world(open_mode_setting).world;
+        const mode = open_mode_setting;
+        let world = create_world(mode).world;
         let items = create_items().items;
         return {
             state() {
+                const args = { items, world, mode };
                 const derive_state = (region, args, location) => {
                     region = !region.can_enter || region.can_enter(args) ||
                         !!region.can_enter_dark && region.can_enter_dark(args) && 'dark';
@@ -33,16 +35,22 @@
                 const dungeons = (...dungeons) =>
                     _.mapValues(_.pick(world, dungeons), region => ({
                         completable: region.completed ? 'marked' :
-                            derive_state(region, { items, world, region }, region.can_complete),
+                            derive_state(region, { ...args, region }, region.can_complete),
                         progressable: !region.chests ? 'marked' :
-                            derive_state(region, { items, world, region }, region.can_progress),
+                            derive_state(region, { ...args, region }, region.can_progress),
                         ..._.pick(region, 'chests', 'prize', 'medallion')
                     }));
                 return {
                     items,
                     dungeons: dungeons(
                         'eastern', 'desert', 'hera', 'darkness', 'swamp',
-                        'skull', 'thieves', 'ice', 'mire', 'turtle')
+                        'skull', 'thieves', 'ice', 'mire', 'turtle'),
+                    encounters: {
+                        castle_tower: {
+                            completable: derive_state(world.castle_tower, { ...args, region: world.castle_tower },
+                                world.castle_tower.can_complete)
+                        }
+                    }
                 };
             },
             toggle_item(name) {

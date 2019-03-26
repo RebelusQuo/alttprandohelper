@@ -172,4 +172,16 @@ describe('Model', () => {
 
     });
 
+    context('encounters', () => {
+
+        with_cases(
+        ['castle_tower', 'sword lamp', 'unavailable'],
+        ['castle_tower', 'cape sword lamp', 'available'],
+        (region, progress, state) => it(`completable ${region} is ${state} ${_with(progress)}`, () => {
+            update(progress, model, region);
+            model.state().encounters[region].completable.should.equal(state);
+        }));
+
+    });
+
 });
