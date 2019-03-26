@@ -189,4 +189,77 @@ describe('Model', () => {
 
     });
 
+    context('lightworld locations', () => {
+
+        with_cases({
+            lightworld_deathmountain_west: 'ether',
+            lightworld_deathmountain_east: 'island_dm',
+            lightworld_northwest: 'altar',
+            lightworld_northeast: 'zora',
+            lightworld_south: 'maze',
+            castle_escape: 'sanctuary'
+        }, (region, name) => it(`${region} locations have a region association`, () => {
+            model.state().lightworld[name].region.should.equal(region);
+        }));
+
+        with_cases(
+        ['spectacle_rock', 'mirror', 'unavailable'],
+        ['spectacle_rock', 'glove', 'viewable'],
+        ['spectacle_rock', 'glove mirror', 'dark'],
+        ['spectacle_rock', 'flute mirror', 'available'],
+        ['island_dm', 'mitt moonpearl mirror', 'unavailable'],
+        ['island_dm', 'glove mirror hammer', 'viewable'],
+        ['island_dm', 'hammer mitt moonpearl mirror', 'dark'],
+        ['island_dm', 'flute hammer mitt moonpearl mirror', 'available'],
+        ['altar', 'book', 'viewable'],
+        ['mushroom', null, 'available'],
+        ['zora', null, 'unavailable'],
+        ['zora', 'flippers', 'available'],
+        ['maze', null, 'available'],
+        ['library', null, 'viewable'],
+        ['library', 'boots', 'available'],
+        ['sanctuary', null, 'available'],
+        ['escape_side', null, 'dark'],
+        ['escape_side', 'glove', 'available'],
+        (name, progress, state) => it(`can access ${name} is ${state} ${_with(progress)}`, () => {
+            update(progress, model);
+            model.state().lightworld[name].state.should.equal(state);
+        }));
+
+    });
+
+    context('darkworld locations', () => {
+
+        with_cases({
+            darkworld_deathmountain_west: 'spike',
+            darkworld_deathmountain_east: 'rock_hook',
+            darkworld_northwest: 'bumper',
+            darkworld_northeast: 'catfish',
+            darkworld_south: 'dig_game',
+            darkworld_mire: 'mire_w'
+        }, (region, name) => it(`${region} locations have a region association`, () => {
+            model.state().darkworld[name].region.should.equal(region);
+        }));
+
+        with_cases(
+        ['spike', 'moonpearl hammer glove cape', 'dark'],
+        ['spike', 'flute moonpearl hammer glove cape', 'available'],
+        ['bunny', 'moonpearl', 'unavailable'],
+        ['bunny', 'flute mirror hammer mitt moonpearl', 'available'],
+        ['bunny', 'mirror hammer mitt moonpearl', 'dark'],
+        ['bumper', 'glove cape', 'unavailable'],
+        ['bumper', 'moonpearl hammer glove cape', 'available'],
+        ['catfish', 'moonpearl glove', 'unavailable'],
+        ['catfish', 'hammer moonpearl glove', 'available'],
+        ['dig_game', null, 'unavailable'],
+        ['dig_game', 'moonpearl glove hammer', 'available'],
+        ['mire_w', 'moonpearl', 'unavailable'],
+        ['mire_w', 'flute mitt moonpearl', 'available'],
+        (name, progress, state) => it(`can access ${name} is ${state} ${_with(progress)}`, () => {
+            update(progress, model);
+            model.state().darkworld[name].state.should.equal(state);
+        }));
+
+    });
+
 });

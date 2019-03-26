@@ -40,6 +40,14 @@
                             derive_state(region, { ...args, region }, region.can_progress),
                         ..._.pick(region, 'chests', 'prize', 'medallion')
                     }));
+                const overworld = (...regions) =>
+                    _.assign(..._.map(_.pick(world, regions), (region, name) => ({
+                        ..._.mapValues(region.locations, location => ({
+                            region: name,
+                            state: derive_state(region, { ...args, region },
+                                args => !location.can_access || location.can_access(args))
+                        }))
+                    })));
                 return {
                     items,
                     dungeons: dungeons(
@@ -50,7 +58,21 @@
                             completable: (region => region.completed ? 'marked' :
                                 derive_state(region, { ...args, region }, region.can_complete))(world.castle_tower)
                         }
-                    }
+                    },
+                    lightworld: overworld(
+                        'lightworld_deathmountain_west',
+                        'lightworld_deathmountain_east',
+                        'lightworld_northwest',
+                        'lightworld_northeast',
+                        'lightworld_south',
+                        'castle_escape'),
+                    darkworld: overworld(
+                        'darkworld_deathmountain_west',
+                        'darkworld_deathmountain_east',
+                        'darkworld_northwest',
+                        'darkworld_northeast',
+                        'darkworld_south',
+                        'darkworld_mire')
                 };
             },
             toggle_item(name) {
