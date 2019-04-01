@@ -13,8 +13,7 @@
     const prizes = ['unknown', 'pendant-green', 'pendant', 'crystal', 'crystal-red'];
     const medallions = ['unknown', 'bombos', 'ether', 'quake'];
 
-    const create_model = () => {
-        const mode = open_mode_setting;
+    const create_model = (mode) => {
         let world = create_world(mode).world;
         let items = create_items().items;
         return {
@@ -38,7 +37,7 @@
                             derive_state(region, { ...args, region }, region.can_complete),
                         progressable: !region.chests ? 'marked' :
                             derive_state(region, { ...args, region }, region.can_progress),
-                        ..._.pick(region, 'chests', 'prize', 'medallion')
+                        ..._.pick(region, 'chests', 'prize', 'medallion', 'keys')
                     }));
                 const overworld = (...regions) =>
                     _.assign(..._.map(_.pick(world, regions), (region, name) => ({
@@ -72,7 +71,12 @@
                         'darkworld_northwest',
                         'darkworld_northeast',
                         'darkworld_south',
-                        'darkworld_mire')
+                        'darkworld_mire'),
+                    ...(mode.keysanity && {
+                        castle_escape: _.pick(world.castle_escape, 'keys'),
+                        castle_tower: _.pick(world.castle_tower, 'keys'),
+                        ganon_tower: _.pick(world.ganon_tower, 'keys')
+                    })
                 };
             },
             toggle_item(name) {
@@ -88,6 +92,16 @@
             },
             toggle_completion(region) {
                 world = update(world, { [region]: update.toggle('completed') });
+            },
+            raise_key(region) {
+                const { keys, key_limit } = world[region];
+                const value = level(keys, key_limit, 1);
+                world = update(world, { [region]: { keys: { $set: value } } });
+            },
+            lower_key(region) {
+                const { keys, key_limit } = world[region];
+                const value = level(keys, key_limit, -1);
+                world = update(world, { [region]: { keys: { $set: value } } });
             },
             raise_chest(region) {
                 const { chests, chest_limit } = world[region];

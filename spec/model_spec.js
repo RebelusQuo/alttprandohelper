@@ -42,7 +42,7 @@ describe('Model', () => {
     let model;
 
     beforeEach(() => {
-        model = create_model();
+        model = create_model({ open: true });
     });
 
     it('can toggle items', () => {
@@ -308,6 +308,32 @@ describe('Model', () => {
             update('moonpearl glove hammer', model);
             model.state().darkworld.fairy_dw.state.should.equal('available');
         });
+
+    });
+
+    context('open keysanity mode', () => {
+
+        beforeEach(() => {
+            model = create_model({ open: true, keysanity: true, hammery_jump: false, bomb_jump: false });
+        });
+
+        with_cases(..._.without(each_dungeon, 'eastern'),
+        (dungeon) => it(`can level ${dungeon} keys`, () => {
+            model.state().dungeons[dungeon].keys.should.equal(0);
+            model.lower_key(dungeon);
+            model.state().dungeons[dungeon].keys.should.be.above(0);
+            model.raise_key(dungeon);
+            model.state().dungeons[dungeon].keys.should.equal(0);
+        }));
+
+        with_cases('castle_escape', 'castle_tower', 'ganon_tower',
+        (region) => it(`can level ${region} keys`, () => {
+            model.state()[region].keys.should.equal(0);
+            model.lower_key(region);
+            model.state()[region].keys.should.be.above(0);
+            model.raise_key(region);
+            model.state()[region].keys.should.equal(0);
+        }));
 
     });
 
