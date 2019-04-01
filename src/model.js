@@ -37,7 +37,7 @@
                             derive_state(region, { ...args, region }, region.can_complete),
                         progressable: !region.chests ? 'marked' :
                             derive_state(region, { ...args, region }, region.can_progress),
-                        ..._.pick(region, 'chests', 'prize', 'medallion', 'keys')
+                        ..._.pick(region, 'chests', 'prize', 'medallion', 'keys', 'big_key')
                     }));
                 const overworld = (...regions) =>
                     _.assign(..._.map(_.pick(world, regions), (region, name) => ({
@@ -75,7 +75,7 @@
                     ...(mode.keysanity && {
                         castle_escape: _.pick(world.castle_escape, 'keys'),
                         castle_tower: _.pick(world.castle_tower, 'keys'),
-                        ganon_tower: _.pick(world.ganon_tower, 'keys')
+                        ganon_tower: _.pick(world.ganon_tower, 'keys', 'big_key')
                     })
                 };
             },
@@ -92,6 +92,9 @@
             },
             toggle_completion(region) {
                 world = update(world, { [region]: update.toggle('completed') });
+            },
+            toggle_big_key(region) {
+                world = update(world, { [region]: update.toggle('big_key') });
             },
             raise_key(region) {
                 const { keys, key_limit } = world[region];

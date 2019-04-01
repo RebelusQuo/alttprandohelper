@@ -335,6 +335,23 @@ describe('Model', () => {
             model.state()[region].keys.should.equal(0);
         }));
 
+        with_cases(...each_dungeon,
+        (dungeon) => it(`can toggle ${dungeon} big key`, () => {
+            model.state().dungeons[dungeon].big_key.should.be.false;
+            model.toggle_big_key(dungeon);
+            model.state().dungeons[dungeon].big_key.should.be.true;
+            model.toggle_big_key(dungeon);
+            model.state().dungeons[dungeon].big_key.should.be.false;
+        }));
+
+        it(`can toggle castle tower big key`, () => {
+            model.state().ganon_tower.big_key.should.be.false;
+            model.toggle_big_key('ganon_tower');
+            model.state().ganon_tower.big_key.should.be.true;
+            model.toggle_big_key('ganon_tower');
+            model.state().ganon_tower.big_key.should.be.false;
+        });
+
     });
 
 });

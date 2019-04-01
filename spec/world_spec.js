@@ -836,6 +836,10 @@ describe('World', () => {
             world[region].should.include({ keys: 0, key_limit: keys });
         }));
 
+        it('ganon tower has a big key', () => {
+            world.ganon_tower.should.include({ big_key: false });
+        });
+
         const keysanity_progress_cases = [
             [[], false],
             [['dark'], 'dark'],
