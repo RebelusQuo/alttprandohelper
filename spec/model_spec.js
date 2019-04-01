@@ -317,6 +317,14 @@ describe('Model', () => {
             model = create_model({ open: true, keysanity: true, hammery_jump: false, bomb_jump: false });
         });
 
+        it('can level ganon tower chests', () => {
+            model.state().ganon_tower.chests.should.be.above(0);
+            model.raise_chest('ganon_tower');
+            model.state().ganon_tower.chests.should.equal(0);
+            model.lower_chest('ganon_tower');
+            model.state().ganon_tower.chests.should.be.above(0);
+        });
+
         with_cases(..._.without(each_dungeon, 'eastern'),
         (dungeon) => it(`can level ${dungeon} keys`, () => {
             model.state().dungeons[dungeon].keys.should.equal(0);

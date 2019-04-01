@@ -75,7 +75,7 @@
                     ...(mode.keysanity && {
                         castle_escape: _.pick(world.castle_escape, 'keys'),
                         castle_tower: _.pick(world.castle_tower, 'keys'),
-                        ganon_tower: _.pick(world.ganon_tower, 'keys', 'big_key')
+                        ganon_tower: _.pick(world.ganon_tower, 'chests', 'keys', 'big_key')
                     })
                 };
             },
