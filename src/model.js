@@ -37,11 +37,11 @@
                         progressable: !region.chests ? 'marked' : derive_state(region, { ...args, region }, region.can_progress),
                         ..._.pick(region, 'chests', 'prize', 'medallion', 'keys', 'big_key'),
                         ...(mode.keysanity && {
-                            locations: _.mapValues(region.locations, location =>
+                            locations: _.mapValues(region.locations, location => location.marked ? 'marked' :
                                 derive_state(region, { ...args, region }, args => !location.can_access || location.can_access(args)))
                         }),
                         ...(mode.keysanity && region.doors && {
-                            doors: _.mapValues(region.doors, door =>
+                            doors: _.mapValues(region.doors, door => door.opened ? 'marked' :
                                 derive_state(region, { ...args, region }, args => !door.can_access || door.can_access(args)))
                         })
                     }));
@@ -138,7 +138,7 @@
                 const value = level_symbol(world[region].medallion, medallions, -1);
                 world = update(world, { [region]: { medallion: { $set: value } } });
             },
-            toggle_overworld_mark(region, name) {
+            toggle_region_mark(region, name) {
                 world = update(world, { [region]: { locations: { [name]: update.toggle('marked') } } });
             },
             toggle_door_mark(region, name) {

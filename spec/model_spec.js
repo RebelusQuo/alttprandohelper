@@ -281,7 +281,7 @@ describe('Model', () => {
 
         with_cases(darkworld_samples,
         (region, name) => it(`${region} locations can be marked`, () => {
-            model.toggle_overworld_mark(region, name);
+            model.toggle_region_mark(region, name);
             model.state().darkworld[name].state.should.equal('marked');
         }));
 
@@ -365,6 +365,21 @@ describe('Model', () => {
         });
 
         context('dungeons', () => {
+
+            with_cases({
+                desert: 'north',
+                darkness: 'front',
+                turtle: 'crystaroller'
+            }, (region, name) => it(`${region} doors can be marked`, () => {
+                model.toggle_door_mark(region, name);
+                model.state().dungeons[region].doors[name].should.equal('marked');
+            }));
+
+            with_cases(...each_dungeon,
+            (region) => it(`${region} locations can be marked`, () => {
+                model.toggle_region_mark(region, 'compass');
+                model.state().dungeons[region].locations.compass.should.equal('marked');
+            }));
 
             with_cases(
             ['desert', 'north', 'glove', 'unavailable'],
