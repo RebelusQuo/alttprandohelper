@@ -15,11 +15,15 @@ const _with = progress =>
 const update = (tokens, model, region) =>
     tokens && tokens.split(' ').forEach(token => {
         let m, v;
-        if (m = token.match(/(\w+)=(.+)/)) {
+        if (token === 'big_key') {
+            model.toggle_big_key(region);
+        } else if (m = token.match(/^(\w+)=(.+)$/)) {
             const [, key, value] = m;
             ({  opened: n => _.times(n, () => model.lower_chest(region)),
-                medallion: n => _.times(n, () => model.raise_medallion(region))
-            })[key](+value);
+                medallion: n => _.times(n, () => model.raise_medallion(region)),
+                keys: n => _.times(n, () => model.raise_key(region)),
+                door: v => _.each(v.split('-'), name => model.toggle_door_mark(region, name))
+            })[key](isNaN(v = +value) ? value : v);
         } else {
             const raise = ([item, n]) => _.times(n, () => model.raise_item(item));
             let item;
@@ -207,7 +211,7 @@ describe('Model', () => {
 
         with_cases(lightworld_samples,
         (region, name) => it(`${region} locations can be marked`, () => {
-            model.toggle_overworld_mark(region, name);
+            model.toggle_region_mark(region, name);
             model.state().lightworld[name].state.should.equal('marked');
         }));
 
@@ -358,6 +362,77 @@ describe('Model', () => {
             model.state().ganon_tower.big_key.should.be.true;
             model.toggle_big_key('ganon_tower');
             model.state().ganon_tower.big_key.should.be.false;
+        });
+
+        context('dungeons', () => {
+
+            with_cases(
+            ['desert', 'north', 'glove', 'unavailable'],
+            ['desert', 'north', 'book glove', 'available'],
+            ['darkness', 'front', 'keys=1', 'unavailable'],
+            ['darkness', 'front', 'keys=1 moonpearl glove hammer', 'available'],
+            ['turtle', 'crystaroller', 'big_key keys=2 bombos ether quake', 'unavailable'],
+            ['turtle', 'crystaroller', 'big_key keys=2 moonpearl mitt hammer somaria sword mirror lamp bombos ether quake', 'available'],
+            (region, name, progress, state) => it(`can access ${region} - door ${name} is ${state} ${_with(progress)}`, () => {
+                update(progress, model, region);
+                model.state().dungeons[region].doors[name].should.equal(state);
+            }));
+
+            with_cases(
+            ['eastern', 'big_chest', null, 'unavailable'],
+            ['eastern', 'big_chest', 'big_key', 'available'],
+            ['desert', 'map', null, 'unavailable'],
+            ['desert', 'map', 'book', 'available'],
+            ['hera', 'map', null, 'unavailable'],
+            ['hera', 'map', 'mirror glove', 'dark'],
+            ['hera', 'map', 'mirror flute', 'available'],
+            ['darkness', 'shooter', null, 'unavailable'],
+            ['darkness', 'shooter', 'moonpearl glove hammer', 'available'],
+            ['swamp', 'entrance', null, 'unavailable'],
+            ['swamp', 'entrance', 'moonpearl mirror flippers glove hammer', 'available'],
+            ['skull', 'map', null, 'unavailable'],
+            ['skull', 'map', 'moonpearl glove hammer', 'available'],
+            ['thieves', 'map', null, 'unavailable'],
+            ['thieves', 'map', 'moonpearl glove hammer', 'available'],
+            ['ice', 'compass', null, 'unavailable'],
+            ['ice', 'compass', 'moonpearl flippers mitt firerod', 'available'],
+            ['mire', 'main', 'bombos ether quake', 'unavailable'],
+            ['mire', 'main', 'moonpearl boots sword flute mitt bombos ether quake', 'available'],
+            ['turtle', 'compass', 'bombos ether quake', 'unavailable'],
+            ['turtle', 'compass', 'moonpearl mitt hammer somaria sword mirror bombos ether quake', 'dark'],
+            ['turtle', 'compass', 'moonpearl mitt hammer somaria sword mirror flute bombos ether quake', 'available'],
+            (region, name, progress, state) => it(`can access ${region} - ${name} is ${state} ${_with(progress)}`, () => {
+                update(progress, model, region);
+                model.state().dungeons[region].locations[name].should.equal(state);
+            }));
+
+            with_cases(
+            ['eastern', null, 'unavailable'],
+            ['eastern', 'big_key bow lamp', 'available'],
+            ['desert', 'big_key glove firerod', 'unavailable'],
+            ['desert', 'big_key book glove firerod', 'available'],
+            ['hera', 'big_key sword', 'unavailable'],
+            ['hera', 'big_key mirror glove sword', 'dark'],
+            ['hera', 'big_key mirror flute sword', 'available'],
+            ['darkness', 'big_key keys=1 bow hammer lamp', 'unavailable'],
+            ['darkness', 'big_key keys=1 moonpearl glove bow hammer lamp', 'available'],
+            ['swamp', 'keys=1 hammer hookshot', 'unavailable'],
+            ['swamp', 'keys=1 moonpearl mirror flippers glove hammer hookshot', 'available'],
+            ['skull', 'firerod sword', 'unavailable'],
+            ['skull', 'moonpearl glove hammer firerod sword', 'available'],
+            ['thieves', 'big_key sword', 'unavailable'],
+            ['thieves', 'big_key moonpearl glove hammer sword', 'available'],
+            ['ice', 'hammer', 'unavailable'],
+            ['ice', 'moonpearl flippers mitt firerod hammer', 'possible'],
+            ['mire', 'big_key somaria bombos ether quake lamp', 'unavailable'],
+            ['mire', 'big_key moonpearl boots sword flute mitt somaria bombos ether quake lamp', 'available'],
+            ['turtle', 'big_key keys=3 firerod icerod bombos ether quake lamp', 'unavailable'],
+            ['turtle', 'big_key keys=3 moonpearl mitt hammer somaria sword mirror firerod icerod bombos ether quake lamp', 'available'],
+            (region, progress, state) => it(`completable ${region} is ${state} ${_with(progress)}`, () => {
+                update(progress, model, region);
+                model.state().dungeons[region].completable.should.equal(state);
+            }));
+
         });
 
     });

@@ -33,11 +33,17 @@
                 };
                 const dungeons = (...dungeons) =>
                     _.mapValues(_.pick(world, dungeons), region => ({
-                        completable: region.completed ? 'marked' :
-                            derive_state(region, { ...args, region }, region.can_complete),
-                        progressable: !region.chests ? 'marked' :
-                            derive_state(region, { ...args, region }, region.can_progress),
-                        ..._.pick(region, 'chests', 'prize', 'medallion', 'keys', 'big_key')
+                        completable: region.completed ? 'marked' : derive_state(region, { ...args, region }, region.can_complete),
+                        progressable: !region.chests ? 'marked' : derive_state(region, { ...args, region }, region.can_progress),
+                        ..._.pick(region, 'chests', 'prize', 'medallion', 'keys', 'big_key'),
+                        ...(mode.keysanity && {
+                            locations: _.mapValues(region.locations, location =>
+                                derive_state(region, { ...args, region }, args => !location.can_access || location.can_access(args)))
+                        }),
+                        ...(mode.keysanity && region.doors && {
+                            doors: _.mapValues(region.doors, door =>
+                                derive_state(region, { ...args, region }, args => !door.can_access || door.can_access(args)))
+                        })
                     }));
                 const overworld = (...regions) =>
                     _.assign(..._.map(_.pick(world, regions), (region, name) => ({
@@ -134,6 +140,9 @@
             },
             toggle_overworld_mark(region, name) {
                 world = update(world, { [region]: { locations: { [name]: update.toggle('marked') } } });
+            },
+            toggle_door_mark(region, name) {
+                world = update(world, { [region]: { doors: { [name]: update.toggle('opened') } } });
             }
         }
     };
