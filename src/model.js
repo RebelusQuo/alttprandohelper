@@ -32,19 +32,24 @@
                         state ? 'available' : 'unavailable';
                 };
                 const dungeons = (...dungeons) =>
-                    _.mapValues(_.pick(world, dungeons), region => ({
-                        completable: region.completed ? 'marked' : derive_state(region, { ...args, region }, region.can_complete),
-                        progressable: !region.chests ? 'marked' : derive_state(region, { ...args, region }, region.can_progress),
-                        ..._.pick(region, 'chests', 'prize', 'medallion', 'keys', 'big_key'),
-                        ...(mode.keysanity && {
-                            locations: _.mapValues(region.locations, location => location.marked ? 'marked' :
-                                derive_state(region, { ...args, region }, args => !location.can_access || location.can_access(args)))
-                        }),
-                        ...(mode.keysanity && region.doors && {
-                            doors: _.mapValues(region.doors, door => door.opened ? 'marked' :
-                                derive_state(region, { ...args, region }, args => !door.can_access || door.can_access(args)))
-                        })
-                    }));
+                    _.mapValues(_.pick(world, dungeons), region => {
+                        const deviating = mode.keysanity && region.has_deviating_counts();
+                        return {
+                            completable: region.completed ? 'marked' : deviating ? 'inconclusive' :
+                                derive_state(region, { ...args, region }, region.can_complete),
+                            progressable: !region.chests ? 'marked' : deviating ? 'inconclusive' :
+                                derive_state(region, { ...args, region }, region.can_progress),
+                            ..._.pick(region, 'chests', 'prize', 'medallion', 'keys', 'big_key'),
+                            ...(mode.keysanity && {
+                                locations: _.mapValues(region.locations, location => location.marked ? 'marked' : deviating ? 'inconclusive' :
+                                    derive_state(region, { ...args, region }, args => !location.can_access || location.can_access(args)))
+                            }),
+                            ...(mode.keysanity && region.doors && {
+                                doors: _.mapValues(region.doors, door => door.opened ? 'marked' : deviating ? 'inconclusive' :
+                                    derive_state(region, { ...args, region }, args => !door.can_access || door.can_access(args)))
+                            })
+                        };
+                    });
                 const overworld = (...regions) =>
                     _.assign(..._.map(_.pick(world, regions), (region, name) => ({
                         ..._.mapValues(region.locations, location => ({
@@ -97,7 +102,13 @@
                 items = update(items, { [name]: { $set: value } });
             },
             toggle_completion(region) {
-                world = update(world, { [region]: update.toggle('completed') });
+                const completed = !world[region].completed;
+                const dungeon = mode.keysanity && _.has(world[region].locations, 'boss');
+                world = update(world, { [region]: {
+                    completed: { $set: completed },
+                    locations: dungeon && { boss: { marked: { $set: completed } } },
+                    chests: dungeon && !world[region].has_deviating_counts() && (x => x - (completed ? 1 : -1))
+                } });
             },
             toggle_big_key(region) {
                 world = update(world, { [region]: update.toggle('big_key') });
@@ -139,7 +150,13 @@
                 world = update(world, { [region]: { medallion: { $set: value } } });
             },
             toggle_region_mark(region, name) {
-                world = update(world, { [region]: { locations: { [name]: update.toggle('marked') } } });
+                const marked = !world[region].locations[name].marked;
+                const dungeon = mode.keysanity && _.has(world[region].locations, 'boss');
+                world = update(world, { [region]: {
+                    locations: { [name]: { marked: { $set: marked } } },
+                    completed: name === 'boss' && { $set: marked },
+                    chests: dungeon && !world[region].has_deviating_counts() && (x => x - (marked ? 1 : -1))
+                } });
             },
             toggle_door_mark(region, name) {
                 world = update(world, { [region]: { doors: { [name]: update.toggle('opened') } } });

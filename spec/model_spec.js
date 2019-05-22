@@ -444,6 +444,293 @@ describe('Model', () => {
                 model.state().dungeons[region].completable.should.equal(state);
             }));
 
+            context('location mismatch', () => {
+
+                const location_samples = [
+                    ['eastern', 'compass', 'map'],
+                    ['desert', 'compass', 'map'],
+                    ['hera', 'compass', 'map'],
+                    ['darkness', 'compass', 'map'],
+                    ['swamp', 'compass', 'map'],
+                    ['skull', 'compass', 'map'],
+                    ['thieves', 'compass', 'map'],
+                    ['ice', 'compass', 'map'],
+                    ['mire', 'compass', 'map'],
+                    ['turtle', 'compass', 'big_key']
+                ];
+
+                with_cases(...each_dungeon,
+                (region) => it(`${region} has inconclusive states when deviating below by lowering chest count`, () => {
+                    model.lower_chest(region);
+
+                    const state = model.state();
+                    state.dungeons[region].completable.should.equal('inconclusive');
+                    state.dungeons[region].progressable.should.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.equal('inconclusive');
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`${region} has conclusive states when deviating below and then raising chest count`, () => {
+                    model.lower_chest(region);
+
+                    model.raise_chest(region);
+
+                    const state = model.state();
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...location_samples,
+                (region, name) => it(`${region} has inconclusive states when deviating above by raising chest count`, () => {
+                    model.toggle_region_mark(region, name);
+
+                    model.raise_chest(region);
+
+                    const state = model.state();
+                    state.dungeons[region].completable.should.equal('inconclusive');
+                    state.dungeons[region].progressable.should.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.be.oneOf(['inconclusive', 'marked']);
+                }));
+
+                with_cases(...location_samples,
+                (region, name) => it(`${region} has conclusive states when deviating above and then lowering chest count`, () => {
+                    model.toggle_region_mark(region, name);
+                    model.raise_chest(region);
+
+                    model.lower_chest(region);
+
+                    const state = model.state();
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...location_samples,
+                (region, name) => it(`${region} has conclusive states while marking a location`, () => {
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_region_mark(region, name);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.be.below(count);
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...location_samples,
+                (region, name) => it(`${region} has conclusive states while unmarking a location`, () => {
+                    model.toggle_region_mark(region, name);
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_region_mark(region, name);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.be.above(count);
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...location_samples,
+                (region, name) => it(`${region} has conclusive states when deviating below while marking a location`, () => {
+                    model.lower_chest(region);
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_region_mark(region, name);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.equal(count);
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...location_samples,
+                (region, name) => it(`${region} has conclusive states when deviating above while unmarking a location`, () => {
+                    model.toggle_region_mark(region, name);
+                    model.raise_chest(region);
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_region_mark(region, name);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.equal(count);
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...location_samples,
+                (region, name) => it(`${region} has inconclusive states when deviating far below while marking a location`, () => {
+                    _.times(2, () => model.lower_chest(region));
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_region_mark(region, name);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.equal(count);
+                    state.dungeons[region].completable.should.equal('inconclusive');
+                    state.dungeons[region].progressable.should.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.be.oneOf(['inconclusive', 'marked']);
+                }));
+
+                with_cases(...location_samples,
+                (region, name, second_name) => it(`${region} has inconclusive states when deviating far above while unmarking a location`, () => {
+                    model.toggle_region_mark(region, second_name);
+                    model.toggle_region_mark(region, name);
+                    _.times(2, () => model.raise_chest(region));
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_region_mark(region, name);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.equal(count);
+                    state.dungeons[region].completable.should.equal('inconclusive');
+                    state.dungeons[region].progressable.should.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.be.oneOf(['inconclusive', 'marked']);
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`completable ${region} is marked when marking the boss location`, () => {
+                    model.toggle_region_mark(region, 'boss');
+
+                    const state = model.state();
+                    state.dungeons[region].completable.should.equal('marked');
+                    state.dungeons[region].locations.boss.should.equal('marked');
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`completable ${region} is not marked when unmarking the boss location`, () => {
+                    model.toggle_region_mark(region, 'boss');
+
+                    model.toggle_region_mark(region, 'boss');
+
+                    const state = model.state();
+                    state.dungeons[region].completable.should.not.equal('marked');
+                    state.dungeons[region].locations.boss.should.not.equal('marked');
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`completable ${region} and boss location is marked when marking completion`, () => {
+                    model.toggle_completion(region);
+
+                    const state = model.state();
+                    state.dungeons[region].completable.should.equal('marked');
+                    state.dungeons[region].locations.boss.should.equal('marked');
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`completable ${region} and boss location is not marked when unmarking completion`, () => {
+                    model.toggle_completion(region);
+
+                    model.toggle_completion(region);
+
+                    const state = model.state();
+                    state.dungeons[region].completable.should.not.equal('marked');
+                    state.dungeons[region].locations.boss.should.not.equal('marked');
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`${region} has conclusive states while marking completion`, () => {
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_completion(region);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.be.below(count);
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`${region} has conclusive states while unmarking completion`, () => {
+                    model.toggle_completion(region);
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_completion(region);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.be.above(count);
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`${region} has conclusive states when deviating below while marking completion`, () => {
+                    model.lower_chest(region);
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_completion(region);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.equal(count);
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`${region} has conclusive states when deviating above while unmarking completion`, () => {
+                    model.toggle_completion(region);
+                    model.raise_chest(region);
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_completion(region);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.equal(count);
+                    state.dungeons[region].completable.should.not.equal('inconclusive');
+                    state.dungeons[region].progressable.should.not.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases(...each_dungeon,
+                (region) => it(`${region} has inconclusive states when deviating far below while marking completion`, () => {
+                    _.times(2, () => model.lower_chest(region));
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_completion(region);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.equal(count);
+                    state.dungeons[region].completable.should.equal('marked');
+                    state.dungeons[region].progressable.should.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.be.oneOf(['inconclusive', 'marked']);
+                }));
+
+                with_cases(...location_samples,
+                (region, name, second_name) => it(`${region} has inconclusive states when deviating far above while unmarking completion`, () => {
+                    model.toggle_region_mark(region, second_name);
+                    model.toggle_region_mark(region, name);
+                    _.times(2, () => model.raise_chest(region));
+                    const count = model.state().dungeons[region].chests;
+
+                    model.toggle_region_mark(region, name);
+
+                    const state = model.state();
+                    state.dungeons[region].chests.should.equal(count);
+                    state.dungeons[region].completable.should.equal('inconclusive');
+                    state.dungeons[region].progressable.should.equal('inconclusive');
+                    _.map(state.dungeons[region].locations).should.each.be.oneOf(['inconclusive', 'marked']);
+                }));
+
+                with_cases('desert', 'darkness', 'turtle',
+                (region) => it(`${region} doors has conclusive states when not deviating`, () => {
+                    _.map(model.state().dungeons[region].doors).should.each.not.equal('inconclusive');
+                }));
+
+                with_cases('desert', 'darkness', 'turtle',
+                (region) => it(`${region} doors has in conclusive states when deviating`, () => {
+                    model.lower_chest(region);
+                    _.map(model.state().dungeons[region].doors).should.each.equal('inconclusive');
+                }));
+
+            });
+
         });
 
     });
