@@ -1,18 +1,5 @@
-const { with_cases, helpers } = require('./spec_helper');
-const sinon = require('sinon');
-const sinon_chai = require('sinon-chai');
-const chai_each = require('chai-each');
+const { with_cases, expect, sinon, a } = require('./spec_setup');
 const _ = require('lodash');
-
-const a = sinon.match;
-_.assign(a, { ref: a.same });
-
-const chai = require('chai');
-const expect = chai.expect;
-chai.use(helpers);
-chai.use(sinon_chai);
-chai.use(chai_each);
-chai.should();
 
 const create_world = require('../src/world');
 const create_items = require('../src/items');

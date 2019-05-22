@@ -1,9 +1,5 @@
-const with_cases = require('./spec_helper').with_cases;
+const { with_cases, expect } = require('./spec_setup');
 const _ = require('lodash');
-
-const chai = require('chai');
-const expect = chai.expect;
-chai.should();
 
 const create_model = require('../src/model');
 
