@@ -4,6 +4,8 @@
     const styled = window.styled.default;
     const css = window.styled.css;
 
+    const ModelContext = React.createContext();
+
     const Slot = styled.div`
       width: 64px;
       height: 64px;
@@ -14,17 +16,29 @@
     `;
 
     const Item = (props) =>
-      <ActiveItem
-        className={classNames(props.name, props.value && `${props.name}--active`)}
-        active={props.value}
-        onClick={() => props.onToggle(props.name)} />;
+      <ModelContext.Consumer>
+        {model => <ActiveItem
+          className={classNames(props.name, props.value && `${props.name}--active`)}
+          active={props.value}
+          onClick={() => model.toggle_item(props.name)} />}
+      </ModelContext.Consumer>;
 
     const LeveledItem = (props) =>
-      <ActiveItem
-        className={classNames(props.name, props.value && `${props.name}--active-${props.value}`)}
-        active={props.value > 0}
-        onClick={() => props.onLevel({ raise: props.name })}
-        onContextMenu={(e) => { props.onLevel({ lower: props.name }); e.preventDefault(); }} />
+      <ModelContext.Consumer>
+        {model => <ActiveItem
+          className={classNames(props.name, props.value && `${props.name}--active-${props.value}`)}
+          active={props.value > 0}
+          onClick={() => model.raise_item(props.name)}
+          onContextMenu={(e) => { model.lower_item(props.name); e.preventDefault(); }} />}
+      </ModelContext.Consumer>;
+
+    const AgahnimCompletion = (props) =>
+      <ModelContext.Consumer>
+        {model => <ActiveItem
+          className={classNames('agahnim', props.value && 'agahnim--active')}
+          active={props.value}
+          onClick={() => model.toggle_completion('castle_tower')} />}
+      </ModelContext.Consumer>;
 
     const SubSlot = styled.div`
       width: 32px;
@@ -36,9 +50,12 @@
     `;
 
     const BigKey = (props) =>
-      <ActiveSubItem className="big-key"
-        active={props.source.big_key}
-        onClick={() => props.onToggle(props.name)} />;
+      <ModelContext.Consumer>
+        {model =>
+        <ActiveSubItem className="big-key"
+          active={props.source.big_key}
+          onClick={() => model.toggle_big_key(props.name)} />}
+      </ModelContext.Consumer>;
 
     const StyledDungeon = styled(Slot)`
       position: relative;
@@ -61,28 +78,34 @@
     `;
 
     const Dungeon = (props) =>
-      <StyledDungeon keysanity={props.keysanity}>
-        <ActiveItem
-          className={`boss boss---${props.name}`}
-          active={props.dungeon.completed}
-          onClick={() => props.onCompletion(props.name)} />
-        {props.medallion &&
-        <SubSlot
-          className={`medallion medallion--${props.dungeon.medallion}`}
-          onClick={() => props.onMedallion({ raise: props.name })}
-          onContextMenu={(e) => { props.onMedallion({ lower: props.name }); e.preventDefault(); }} />}
-        {props.keysanity &&
-        <BigKey name={props.name} source={props.dungeon} onToggle={props.onBigKey} />}
-        <SubSlot
-          className={`prize prize--${props.dungeon.prize}`}
-          onClick={() => props.onPrize({ raise: props.name })}
-          onContextMenu={(e) => { props.onPrize({ lower: props.name }); e.preventDefault(); }} />
-      </StyledDungeon>;
+      <ModelContext.Consumer>
+        {model =>
+        <StyledDungeon keysanity={props.keysanity}>
+          <ActiveItem
+            className={`boss boss---${props.name}`}
+            active={props.dungeon.completed}
+            onClick={() => model.toggle_completion(props.name)} />
+          {props.medallion &&
+          <SubSlot
+            className={`medallion medallion--${props.dungeon.medallion}`}
+            onClick={() => model.raise_medallion(props.name)}
+            onContextMenu={(e) => { model.lower_medallion(props.name); e.preventDefault(); }} />}
+          {props.keysanity &&
+          <BigKey name={props.name} source={props.dungeon} />}
+          <SubSlot
+            className={`prize prize--${props.dungeon.prize}`}
+            onClick={() => model.raise_prize(props.name)}
+            onContextMenu={(e) => { model.lower_prize(props.name); e.preventDefault(); }} />
+        </StyledDungeon>}
+      </ModelContext.Consumer>;
 
     const Chests = (props) =>
-      <Slot className={`chest-${props.dungeon.chests}`}
-        onClick={() => props.onLevel({ lower: props.name })}
-        onContextMenu={(e) => { props.onLevel({ raise: props.name }); e.preventDefault(); }} />;
+      <ModelContext.Consumer>
+        {model =>
+        <Slot className={`chest-${props.source.chests}`}
+          onClick={() => model.lower_chest(props.name)}
+          onContextMenu={(e) => { model.raise_chest(props.name); e.preventDefault(); }} />}
+      </ModelContext.Consumer>;
 
     const OutlinedText = styled.span`
       color: white;
@@ -107,21 +130,27 @@
     `;
 
     const KeysanityChest = (props) =>
-      <TextSubSlot className={classNames('chest', { 'chest--empty': !props.source.chests })}
-        onClick={() => props.onLevel({ lower: props.name })}
-        onContextMenu={(e) => { props.onLevel({ raise: props.name }); e.preventDefault(); }}>
-        <ChestText>{`${props.source.chests}`}</ChestText>
-      </TextSubSlot>;
+      <ModelContext.Consumer>
+        {model =>
+        <TextSubSlot className={classNames('chest', { 'chest--empty': !props.source.chests })}
+          onClick={() => model.lower_chest(props.name)}
+          onContextMenu={(e) => { model.raise_chest(props.name); e.preventDefault(); }}>
+          <ChestText>{`${props.source.chests}`}</ChestText>
+        </TextSubSlot>}
+      </ModelContext.Consumer>;
 
     const Keys = (props) => {
         const { keys, key_limit } = props.source;
         return !key_limit ?
             <TextSubSlot className="key"><KeyText>{'\u2014'}</KeyText></TextSubSlot> :
-            <TextSubSlot className="key"
-              onClick={() => props.onLevel({ raise: props.name })}
-              onContextMenu={(e) => { props.onLevel({ lower: props.name }); e.preventDefault(); }}>
-              <KeyText>{`${keys}/${key_limit}`}</KeyText>
-            </TextSubSlot>;
+            <ModelContext.Consumer>
+              {model =>
+              <TextSubSlot className="key"
+                onClick={() => model.raise_key(props.name)}
+                onContextMenu={(e) => { model.lower_key(props.name); e.preventDefault(); }}>
+                <KeyText>{`${keys}/${key_limit}`}</KeyText>
+              </TextSubSlot>}
+            </ModelContext.Consumer>;
     };
 
     const Sprite = styled.div`
@@ -154,16 +183,17 @@
 
     const Portrait = (props) => {
       const { items, keysanity } = props;
-      const { onToggle, onLevel } = props;
-      return <Sprite
-        className={classNames(`tunic--active-${items.tunic}`, { 'tunic--bunny': !items.moonpearl })}
-        keysanity={keysanity}
-        onClick={(e) => e.target === e.currentTarget && onLevel({ raise: 'tunic' })}
-        onContextMenu={(e) => { e.target === e.currentTarget && onLevel({ lower: 'tunic' }); e.preventDefault(); }}>
-        <LeveledItem name="sword" value={items.sword} onLevel={onLevel} />
-        <LeveledItem name="shield" value={items.shield} onLevel={onLevel} />
-        <Item name="moonpearl" value={items.moonpearl} onToggle={onToggle} />
-      </Sprite>;
+      return <ModelContext.Consumer>
+        {model => <Sprite
+          className={classNames(`tunic--active-${items.tunic}`, { 'tunic--bunny': !items.moonpearl })}
+          keysanity={keysanity}
+          onClick={(e) => e.target === e.currentTarget && model.raise_item('tunic')}
+          onContextMenu={(e) => { e.target === e.currentTarget && model.lower_item('tunic'); e.preventDefault(); }}>
+          <LeveledItem name="sword" value={items.sword} />
+          <LeveledItem name="shield" value={items.shield} />
+          <Item name="moonpearl" value={items.moonpearl} />
+        </Sprite>}
+      </ModelContext.Consumer>;
     };
 
     const TrackerItemGrid = styled.div`
@@ -214,50 +244,50 @@
 
     class Tracker extends React.Component {
         render() {
-            const { items, world, mode: { keysanity } } = this.props.model;
-            const { ganon_tower, castle_escape, castle_tower } = world;
-            const { onToggle, onLevel, onChest, onCompletion, onKey, onBigKey } = this.props;
+            const { keysanity, model_state: { items, ganon_tower, castle_escape, castle_tower } } = this.props;
+            const portrait = <Portrait keysanity={keysanity} items={items} />
+            const agahnim = <AgahnimCompletion value={castle_tower.completed} />;
             return <TrackerGrid>
               {keysanity ?
               <KeysanityPortrait>
-                <Portrait keysanity={true} items={items} onToggle={onToggle} onLevel={onLevel} />
+                {portrait}
                 <KeysanityChest name="ganon_tower" source={ganon_tower} onLevel={onChest} />
-                <Keys name="ganon_tower" source={ganon_tower} onLevel={onKey} />
-                <BigKey name="ganon_tower" source={ganon_tower} onToggle={onBigKey} />
+                <Keys name="ganon_tower" source={ganon_tower} />
+                <BigKey name="ganon_tower" source={ganon_tower} />
               </KeysanityPortrait> :
-              <Portrait items={items} onToggle={onToggle} onLevel={onLevel} />}
+              portrait}
               <TrackerItemGrid>
-                <LeveledItem name="bow" value={items.bow} onLevel={onLevel} />
-                <LeveledItem name="boomerang" value={items.boomerang} onLevel={onLevel} />
-                <Item name="hookshot" value={items.hookshot} onToggle={onToggle} />
-                <Item name="mushroom" value={items.mushroom} onToggle={onToggle} />
-                <Item name="powder" value={items.powder} onToggle={onToggle} />
-                <Item name="firerod" value={items.firerod} onToggle={onToggle} />
-                <Item name="icerod" value={items.icerod} onToggle={onToggle} />
-                <Item name="bombos" value={items.bombos} onToggle={onToggle} />
-                <Item name="ether" value={items.ether} onToggle={onToggle} />
-                <Item name="quake" value={items.quake} onToggle={onToggle} />
-                <Item name="lamp" value={items.lamp} onToggle={onToggle} />
-                <Item name="hammer" value={items.hammer} onToggle={onToggle} />
-                <Item name="shovel" value={items.shovel} onToggle={onToggle} />
-                <Item name="net" value={items.net} onToggle={onToggle} />
-                <Item name="book" value={items.book} onToggle={onToggle} />
-                <LeveledItem name="bottle" value={items.bottle} onLevel={onLevel} />
-                <Item name="somaria" value={items.somaria} onToggle={onToggle} />
-                <Item name="byrna" value={items.byrna} onToggle={onToggle} />
-                <Item name="cape" value={items.cape} onToggle={onToggle} />
-                <Item name="mirror" value={items.mirror} onToggle={onToggle} />
-                <Item name="boots" value={items.boots} onToggle={onToggle} />
-                <LeveledItem name="glove" value={items.glove} onLevel={onLevel} />
-                <Item name="flippers" value={items.flippers} onToggle={onToggle} />
-                <Item name="flute" value={items.flute} onToggle={onToggle} />
+                <LeveledItem name="bow" value={items.bow} />
+                <LeveledItem name="boomerang" value={items.boomerang} />
+                <Item name="hookshot" value={items.hookshot} />
+                <Item name="mushroom" value={items.mushroom} />
+                <Item name="powder" value={items.powder} />
+                <Item name="firerod" value={items.firerod} />
+                <Item name="icerod" value={items.icerod} />
+                <Item name="bombos" value={items.bombos} />
+                <Item name="ether" value={items.ether} />
+                <Item name="quake" value={items.quake} />
+                <Item name="lamp" value={items.lamp} />
+                <Item name="hammer" value={items.hammer} />
+                <Item name="shovel" value={items.shovel} />
+                <Item name="net" value={items.net} />
+                <Item name="book" value={items.book} />
+                <LeveledItem name="bottle" value={items.bottle} />
+                <Item name="somaria" value={items.somaria} />
+                <Item name="byrna" value={items.byrna} />
+                <Item name="cape" value={items.cape} />
+                <Item name="mirror" value={items.mirror} />
+                <Item name="boots" value={items.boots} />
+                <LeveledItem name="glove" value={items.glove} />
+                <Item name="flippers" value={items.flippers} />
+                <Item name="flute" value={items.flute} />
                 {keysanity ?
                 <KeysanityAgahnim>
-                  <Item name="agahnim" value={castle_tower.completed} onToggle={() => onCompletion('castle_tower')} />
-                  <Keys name="castle_tower" source={castle_tower} onLevel={onKey} />
-                  <Keys name="castle_escape" source={castle_escape} onLevel={onKey} />
+                  {agahnim}
+                  <Keys name="castle_tower" source={castle_tower} />
+                  <Keys name="castle_escape" source={castle_escape} />
                 </KeysanityAgahnim> :
-                <Item name="agahnim" value={castle_tower.completed} onToggle={() => onCompletion('castle_tower')} />}
+                agahnim}
               </TrackerItemGrid>
               <TrackerLwGrid>
                 {this.dungeon('eastern')}
@@ -287,28 +317,20 @@
         }
 
         dungeon(name, medallion = { medallion: false }) {
-            const dungeon = this.props.model.world[name];
-            const keysanity = this.props.model.mode.keysanity;
-            const { onCompletion, onPrize, onMedallion, onBigKey } = this.props;
-            return <Dungeon name={name} dungeon={dungeon}
-              {...medallion}
-              keysanity={keysanity}
-              onCompletion={name => onCompletion(name, { dungeon: true })}
-              onPrize={onPrize}
-              onMedallion={onMedallion}
-              onBigKey={onBigKey} />;
+            const dungeon = this.props.model_state[name];
+            const keysanity = this.props.keysanity;
+            return <Dungeon name={name} dungeon={dungeon} keysanity={keysanity} {...medallion} />;
         }
 
         inner_dungeon(name) {
-            const dungeon = this.props.model.world[name];
-            const keysanity = this.props.model.mode.keysanity;
-            const { onKey, onChest } = this.props;
+            const dungeon = this.props.model_state[name];
+            const keysanity = this.props.keysanity;
             return keysanity ?
               <KeysanityDungeon>
-                <Keys name={name} source={dungeon} onLevel={onKey} />
-                <KeysanityChest name={name} source={dungeon} onLevel={onChest} />
+                <Keys name={name} source={dungeon} />
+                <KeysanityChest name={name} source={dungeon} />
               </KeysanityDungeon> :
-              <Chests name={name} dungeon={dungeon} onLevel={onChest} />;
+              <Chests name={name} source={dungeon} />;
         }
     }
 
@@ -698,45 +720,47 @@
             };
             this.state = {
                 dungeon_map: null,
-                model: { ...create_items(), ...create_world(mode), mode }
+                keysanity: mode.keysanity,
+                model: create_model(mode)
             };
         }
 
         render() {
             const query = this.props.query;
             const show_map = query.hmap || query.vmap;
-            const { model, dungeon_map } = this.state;
-            const { keysanity } = model.mode;
+            const { dungeon_map, keysanity, model } = this.state;
+            const model_state = model.state();
 
-            return <StyledApp className={query.sprite}
-              horizontal={query.hmap}
-              vertical={query.vmap}
-              style={query.bg && { 'background-color': query.bg }}>
-              <Tracker
+            return <ModelContext.Provider value={this.state.model}>
+              <StyledApp className={query.sprite}
                 horizontal={query.hmap}
-                model={model}
-                onToggle={this.toggle}
-                onLevel={this.level}
-                onCompletion={this.completion}
-                onPrize={this.prize}
-                onMedallion={this.medallion}
-                onKey={this.key}
-                onBigKey={this.big_key}
-                onChest={this.chest} />
-              {show_map && (!dungeon_map ?
-              <OverworldMap
-                horizontal={query.hmap}
-                model={model}
-                onOverworldMark={this.overworld_mark}
-                onDungeon={keysanity ? this.show_dungeon_map : _.noop} /> :
-              <DungeonMap
-                horizontal={query.hmap}
-                model={model}
-                dungeon={dungeon_map}
-                onDismiss={this.dismiss_dungeon_map}
-                onDoorMark={this.door_mark}
-                onLocationMark={this.location_mark} />)}
-            </StyledApp>;
+                vertical={query.vmap}
+                style={query.bg && { 'background-color': query.bg }}>
+                <Tracker
+                  horizontal={query.hmap}
+                  model_state={model_state}
+                  onToggle={this.toggle}
+                  onLevel={this.level}
+                  onCompletion={this.completion}
+                  onPrize={this.prize}
+                  onMedallion={this.medallion}
+                  onKey={this.key}
+                  onBigKey={this.big_key}
+                  onChest={this.chest} />
+                {show_map && (!dungeon_map ?
+                <OverworldMap
+                  horizontal={query.hmap}
+                  model_state={model_state}
+                  onDungeon={keysanity ? this.show_dungeon_map : _.noop} /> :
+                <DungeonMap
+                  horizontal={query.hmap}
+                  model_state={model_state}
+                  dungeon={dungeon_map}
+                  onDismiss={this.dismiss_dungeon_map}
+                  onDoorMark={this.door_mark}
+                  onLocationMark={this.location_mark} />)}
+              </StyledApp>
+            </ModelContext.Provider>;
         }
 
         show_dungeon_map = (dungeon) => {
